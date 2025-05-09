@@ -1,89 +1,178 @@
-export function initPageTransition() {
-  const transitionElement = document.querySelector(".global-transition");
-  if (!transitionElement) return;
+// Function to handle page transitions
+export function initPageTransitions() {
+  let isNavigating = false;
+  let transitionTimeline = null;
+  const MIN_TRANSITION_DURATION = 1; // Minimum duration in seconds
 
-  // Set initial state
-  gsap.set(transitionElement, {
-    display: "none",
-    opacity: 0,
-  });
+  // Function to show the transition
+  function showTransition() {
+    const transitionElement = document.querySelector(".global-transition");
 
-  // Create the transition timeline
-  const transitionTimeline = gsap.timeline({
-    paused: true,
-    onComplete: () => {
-      // Hide the transition element after animation completes
-      gsap.set(transitionElement, { display: "none" });
-    },
-  });
+    if (!transitionElement) {
+      console.error("Global transition element not found");
+      return;
+    }
 
-  // Add animations to the timeline
-  transitionTimeline
-    .set(transitionElement, { display: "flex" })
-    .to(transitionElement, {
+    // Kill any existing timeline
+    if (transitionTimeline) {
+      transitionTimeline.kill();
+    }
+
+    // Set up the transition element
+    transitionElement.style.display = "flex";
+
+    // Create the timeline
+    transitionTimeline = gsap.timeline();
+
+    // Fade in the transition element
+    transitionTimeline.to(transitionElement, {
       opacity: 1,
       duration: 0.5,
       ease: "power2.inOut",
-    })
-    .to(transitionElement, {
+    });
+
+    return transitionTimeline;
+  }
+
+  // Function to hide the transition
+  function hideTransition() {
+    const transitionElement = document.querySelector(".global-transition");
+
+    if (!transitionElement) {
+      console.error("Global transition element not found");
+      return;
+    }
+
+    // Create a new timeline
+    const hideTimeline = gsap.timeline({
+      onComplete: () => {
+        transitionElement.style.display = "none";
+        isNavigating = false;
+      },
+    });
+
+    // Fade out the transition element
+    hideTimeline.to(transitionElement, {
       opacity: 0,
       duration: 0.5,
       ease: "power2.inOut",
-      delay: 0.5, // Minimum delay to ensure animation plays for at least 1 second
     });
 
-  // Listen for navigation events
-  document.addEventListener("click", (e) => {
-    const link = e.target.closest("a");
-    if (!link) return;
+    return hideTimeline;
+  }
 
+  // Handle link clicks
+  function handleLinkClick(e) {
     // Only handle internal links
-    if (link.hostname === window.location.hostname) {
-      e.preventDefault();
-      const targetUrl = link.href;
+    const href = e.currentTarget.getAttribute("href");
 
-      // Start the transition
-      transitionTimeline.restart();
-
-      // Load the new page
-      fetch(targetUrl)
-        .then((response) => response.text())
-        .then((html) => {
-          // Create a temporary element to parse the HTML
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, "text/html");
-
-          // Update the page content
-          document.title = doc.title;
-          document.querySelector("main").innerHTML =
-            doc.querySelector("main").innerHTML;
-
-          // Update the URL without reloading
-          window.history.pushState({}, "", targetUrl);
-
-          // Ensure minimum animation duration
-          const animationDuration = 1000; // 1 second minimum
-          const elapsedTime = transitionTimeline.time() * 1000;
-
-          if (elapsedTime < animationDuration) {
-            const remainingTime = animationDuration - elapsedTime;
-            setTimeout(() => {
-              transitionTimeline.play();
-            }, remainingTime);
-          } else {
-            transitionTimeline.play();
-          }
-        })
-        .catch((error) => {
-          console.error("Error loading page:", error);
-          // If there's an error, still complete the transition
-          transitionTimeline.play();
-        });
+    // Skip if it's an external link, has a download attribute, or is a hash link
+    if (
+      !href ||
+      href.startsWith("http") ||
+      href.startsWith("//") ||
+      href.startsWith("#") ||
+      href.startsWith("tel:") ||
+      href.startsWith("mailto:") ||
+      e.currentTarget.hasAttribute("download") ||
+      e.currentTarget.getAttribute("target") === "_blank"
+    ) {
+      return;
     }
-  });
 
-  // Handle browser back/forward buttons
-  window.addEventListener("popstate", () => {
-    transitionTimeline.restart();
-  });
+    // Prevent default link behavior
+    e.preventDefault();
+
+    // If already navigating, don't do anything
+    if (isNavigating) {
+      return;
+    }
+
+    isNavigating = true;
+
+    // Start the transition animation
+    const startTime = performance.now();
+    const timeline = showTransition();
+
+    // Load the new page
+    fetch(href)
+      .then((response) => response.text())
+      .then((html) => {
+        const parser = new DOMParser();
+        const newDocument = parser.parseFromString(html, "text/html");
+        const newContent = newDocument.querySelector("body");
+
+        // Ensure minimum transition time
+        const elapsedTime = (performance.now() - startTime) / 1000; // Convert to seconds
+        const remainingTime = Math.max(
+          0,
+          MIN_TRANSITION_DURATION - elapsedTime
+        );
+
+        setTimeout(() => {
+          // Wait for content to be ready, then complete the transition
+          document.body.innerHTML = newContent.innerHTML;
+
+          // Update the URL
+          window.history.pushState({}, "", href);
+
+          // Hide the transition element
+          hideTransition();
+
+          // Reinitialize any necessary scripts for the new page
+          reinitializeMumino();
+
+          // Dispatch a custom event that the page has changed
+          window.dispatchEvent(new CustomEvent("pageTransitionComplete"));
+        }, remainingTime * 1000); // Convert to milliseconds
+      })
+      .catch((error) => {
+        console.error("Navigation error:", error);
+        hideTransition();
+        isNavigating = false;
+      });
+  }
+
+  // Initialize by adding event listeners to all internal links
+  function initialize() {
+    // Make sure the transition element exists
+    const transitionElement = document.querySelector(".global-transition");
+    if (!transitionElement) {
+      console.error("Global transition element not found");
+      return;
+    }
+
+    // Reset the transition element
+    transitionElement.style.opacity = 0;
+    transitionElement.style.display = "none";
+
+    // Add click event listeners to all internal links
+    document.querySelectorAll("a").forEach((link) => {
+      link.removeEventListener("click", handleLinkClick); // Remove first to prevent duplicates
+      link.addEventListener("click", handleLinkClick);
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener("popstate", () => {
+      if (!isNavigating) {
+        isNavigating = true;
+        showTransition();
+
+        // Give a small delay before reloading to show the transition
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      }
+    });
+  }
+
+  // Initialize the page transitions
+  initialize();
+
+  // Return methods that can be called externally if needed
+  return {
+    showTransition,
+    hideTransition,
+    reinitialize: initialize,
+  };
 }

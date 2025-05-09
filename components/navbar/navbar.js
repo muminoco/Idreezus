@@ -35,6 +35,7 @@ function getNavbarElements() {
     navbarWrapper: document.querySelector(".nav_wrap.is-mobile"),
     navComponent: document.querySelector(".nav_component"),
     navButton: document.querySelector(".nav_component .w-nav-button"),
+    trigger: document.querySelector(".navbar-transparent-trigger"),
   };
 }
 
@@ -75,7 +76,14 @@ function setNavbarVariant(navEl, variant) {
 
 // Toggle transparent navbar based on scroll position and menu state
 function toggleTransparentNavbar() {
-  const { navbarWrapper, navComponent } = getNavbarElements();
+  const { navbarWrapper, navComponent, trigger } = getNavbarElements();
+
+  // If there's no trigger element, always use base variant
+  if (!trigger) {
+    setNavbarVariant(navComponent, NAVBAR_VARIANTS.base);
+    setNavbarVariant(navbarWrapper, NAVBAR_VARIANTS.base);
+    return;
+  }
 
   if (isNavbarMenuOpen()) {
     setNavbarVariant(navComponent, NAVBAR_VARIANTS.base);
@@ -94,26 +102,34 @@ function playNavbarOpenAnimation() {}
 
 // Initialize navbar state management
 function initNavbarStateManagement() {
-  const { navButton } = getNavbarElements();
+  const { navButton, trigger } = getNavbarElements();
 
   // Track scroll state
   window.isScrolledPast = false;
 
-  // ScrollTrigger logic for transparent navbar
-  ScrollTrigger.create({
-    trigger: ".navbar-transparent-trigger",
-    start: () => `top-=${getNavbarElements().navComponent.offsetHeight} top`,
-    end: "top bottom",
-    onEnter: () => {
-      window.isScrolledPast = true;
-      toggleTransparentNavbar();
-    },
-    onLeaveBack: () => {
-      window.isScrolledPast = false;
-      toggleTransparentNavbar();
-    },
-    markers: false,
-  });
+  // Clean up any existing ScrollTrigger instances
+  ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+
+  // Only create ScrollTrigger if trigger element exists
+  if (trigger) {
+    ScrollTrigger.create({
+      trigger: ".navbar-transparent-trigger",
+      start: () => `top-=${getNavbarElements().navComponent.offsetHeight} top`,
+      end: "top bottom",
+      onEnter: () => {
+        window.isScrolledPast = true;
+        toggleTransparentNavbar();
+      },
+      onLeaveBack: () => {
+        window.isScrolledPast = false;
+        toggleTransparentNavbar();
+      },
+      markers: false,
+    });
+  }
+
+  // Set initial state
+  toggleTransparentNavbar();
 
   // Listen for hamburger menu open/close
   if (navButton) {
@@ -131,15 +147,24 @@ function initNavbarStateManagement() {
   }
 }
 
+// Cleanup function to be called when navigating away
+export function cleanupNavbarAnimations() {
+  ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+  window.isScrolledPast = false;
+}
+
 // The following is just for reference and should be removed before deployment:
 
 /**
  * Example usage in main.js:
  *
- * import { initNavbarAnimations } from './animations/components/navbar.js';
+ * import { initNavbarAnimations, cleanupNavbarAnimations } from './animations/components/navbar.js';
  *
  * document.addEventListener('DOMContentLoaded', () => {
  *   initNavbarAnimations();
  * });
+ *
+ * // Call cleanup when navigating away
+ * window.addEventListener('beforeunload', cleanupNavbarAnimations);
  *
  */
