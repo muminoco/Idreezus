@@ -43,7 +43,7 @@ export const animations = {
           opacity: 0,
           duration: 1,
           delay,
-          stagger: { each: 0.02, from: "random" },
+          stagger: { each: 0.05, from: "left" },
           ease: "sine.out",
         });
       });
