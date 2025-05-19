@@ -34,7 +34,10 @@ export const animations = {
   heading: {
     selector: `[${animationAttributeName}="heading"]`,
     animate: (element, delay = 0) => {
-      const split = splitTextForAnimation(element, [SPLIT_TYPES.CHARS]);
+      const split = splitTextForAnimation(element, [
+        SPLIT_TYPES.CHARS,
+        SPLIT_TYPES.WORDS,
+      ]);
 
       createBaseAnimation(element, (target, tl) => {
         tl.from(split.chars, {
@@ -54,9 +57,13 @@ export const animations = {
   paragraph: {
     selector: `[${animationAttributeName}="paragraph"]`,
     animate: (element, delay = 0) => {
-      const split = splitTextForAnimation(element, [SPLIT_TYPES.LINES], {
-        mask: "lines",
-      });
+      const split = splitTextForAnimation(
+        element,
+        [SPLIT_TYPES.LINES, SPLIT_TYPES.WORDS],
+        {
+          mask: "lines",
+        }
+      );
 
       createBaseAnimation(element, (target, tl) => {
         tl.from(split.lines, {

@@ -1,6 +1,6 @@
 // Configuration
 const USE_SYSTEM_PREFERENCE = true; // Set to false to always start with light mode
-const THEME_BUTTON_ID = "theme-toggle"; // ID for theme toggle buttons
+const THEME_TOGGLE_SELECTOR = "[data-theme-toggle]"; // Selector for theme toggle buttons
 const THEME_CLASS_DARK = "theme-dark";
 const THEME_CLASS_LIGHT = "theme-light";
 const THEME_PREFERENCE_KEY = "user-theme-preference";
@@ -75,7 +75,7 @@ function toggleTheme() {
 
 // Add click event listeners to all theme toggle buttons
 function initializeThemeButtons() {
-  const themeButtons = document.querySelectorAll(`#${THEME_BUTTON_ID}`);
+  const themeButtons = document.querySelectorAll(THEME_TOGGLE_SELECTOR);
   themeButtons.forEach((button) => {
     button.addEventListener("click", toggleTheme);
   });
