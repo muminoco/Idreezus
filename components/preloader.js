@@ -13,6 +13,18 @@ const preloaderTexts = [
   "LOCK IN",
 ];
 
+// Function to disable scrolling
+function disableScroll() {
+  document.body.style.overflow = "hidden";
+  document.body.style.height = "100vh";
+}
+
+// Function to enable scrolling
+function enableScroll() {
+  document.body.style.overflow = "";
+  document.body.style.height = "";
+}
+
 // Function to get current date in EST
 function getCurrentDateEST() {
   const options = {
@@ -75,6 +87,7 @@ function setInitialContent() {
 // Main preloader animation function
 export function initPreloader() {
   const preloader = document.querySelector(".preloader");
+  const animatedH1 = document.getElementById("has-preloader");
 
   // Check if preloader exists on the page
   if (!preloader) {
@@ -90,6 +103,14 @@ export function initPreloader() {
     return;
   }
 
+  // Add animation delay to H1 if it exists
+  if (animatedH1) {
+    animatedH1.setAttribute("data-ani-delay", "2500");
+  }
+
+  // Disable scrolling when preloader starts
+  disableScroll();
+
   // Set up the initial state
   const textElement = preloader.querySelector(".preloader_text");
   const dateElement = preloader.querySelector(".preloader_date");
@@ -97,6 +118,7 @@ export function initPreloader() {
   // Check if required elements exist
   if (!textElement || !dateElement) {
     console.error("Required preloader elements not found");
+    enableScroll(); // Re-enable scrolling if there's an error
     return;
   }
 
@@ -115,28 +137,40 @@ export function initPreloader() {
   });
 
   // Set initial states
-  gsap.set([textElement, dateElement], { autoAlpha: 0 });
+  gsap.set([textElement, dateElement], {
+    autoAlpha: 0,
+    y: 10,
+    filter: "blur(2px)",
+  });
 
   // Build the animation sequence
   tl.to(textElement, {
     autoAlpha: 1,
-    duration: 1,
-    ease: "power2.inOut",
+    y: 0,
+    duration: 1.25,
+    filter: "blur(0px)",
+    ease: "power1.out",
   })
     .to(
       dateElement,
       {
-        autoAlpha: 1,
+        autoAlpha: 0.5,
         duration: 1,
-        ease: "power2.inOut",
+        y: 0,
+        filter: "blur(0px)",
+
+        ease: "power1.out",
       },
-      "-=0.5"
+      "-=0.75"
     )
     .to(preloader, {
       autoAlpha: 0,
-      duration: 1,
-      ease: "power2.inOut",
+      duration: 0.5,
+      ease: "sine.out",
       delay: 1,
+      onStart: () => {
+        enableScroll(); // Re-enable scrolling when preloader starts fading out
+      },
     });
 }
 

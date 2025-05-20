@@ -229,6 +229,14 @@ export const batchAnimations = {
       stagger: 0.1,
     }),
 
+  filmstripFade: (batch) =>
+    gsap.to(batch, {
+      opacity: 1,
+      duration: 1,
+      stagger: 0.2,
+      ease: "sine.out",
+    }),
+
   contentCardReveal: (batch) =>
     gsap.to(batch, {
       opacity: 1,
@@ -296,6 +304,14 @@ export const batchAnimations = {
 export function initBatchAnimations() {
   setupBatchAnimation(".swiper-slide.is-content-card", {
     animation: batchAnimations.contentCardReveal,
+  });
+
+  setupBatchAnimation(".journal_cms_item", {
+    animation: batchAnimations.contentCardReveal,
+  });
+
+  setupBatchAnimation(".filmstrip_image", {
+    animation: batchAnimations.filmstripFade,
   });
 }
 
