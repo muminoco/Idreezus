@@ -4,6 +4,7 @@ import { initNavbarAnimations } from "../components/navbar/navbar.js";
 import { initThemeToggler } from "../components/themeToggler.js";
 import { initCopyButtons } from "../components/copyButtons.js";
 import { initializeHoverEffects } from "../animations/global/hover.js";
+import { initPreloader } from "../components/preloader.js";
 
 function initializeMumino() {
   // Initialize features
@@ -13,6 +14,7 @@ function initializeMumino() {
   initThemeToggler();
   initCopyButtons();
   initializeHoverEffects();
+  initPreloader();
 }
 
 initializeMumino();

@@ -44,9 +44,9 @@ export const animations = {
           filter: "blur(2px)",
           yPercent: 25,
           opacity: 0,
-          duration: 1,
+          duration: 0.75,
           delay,
-          stagger: { each: 0.05, from: "left" },
+          stagger: { each: 0.02, from: "left" },
           ease: "sine.out",
         });
       });
@@ -100,17 +100,21 @@ export const animations = {
     },
   },
 
-  // Eyebrow animations
   eyebrow: {
     selector: `[${animationAttributeName}="eyebrow"]`,
     animate: (element, delay = 0) => {
+      const split = splitTextForAnimation(element, [
+        SPLIT_TYPES.CHARS,
+        SPLIT_TYPES.WORDS,
+      ]);
+
       createBaseAnimation(element, (target, tl) => {
-        tl.from(target, {
-          x: -20,
+        tl.from(split.chars, {
+          yPercent: 10,
           opacity: 0,
-          duration: 0.75,
-          delay,
-          ease: "sine.out",
+          duration: 0.3,
+          delay: 0.25,
+          ease: "power1.out",
         });
       });
     },
@@ -175,7 +179,7 @@ export function runTextAnimations() {
 
         // Skip if no elements found
         if (elements.length === 0) {
-          console.info(`No elements found for "${name}" animation`);
+          // console.info(`No elements found for "${name}" animation`);
           return; // Skip this animation type and continue with others
         }
 

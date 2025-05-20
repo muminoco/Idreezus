@@ -107,12 +107,12 @@ function initNavbarStateManagement() {
   // Track scroll state
   window.isScrolledPast = false;
 
-  // Clean up any existing ScrollTrigger instances
-  ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+  // Store the navbar's ScrollTrigger instance
+  let navbarScrollTrigger = null;
 
   // Only create ScrollTrigger if trigger element exists
   if (trigger) {
-    ScrollTrigger.create({
+    navbarScrollTrigger = ScrollTrigger.create({
       trigger: ".navbar-transparent-trigger",
       start: () => `top-=${getNavbarElements().navComponent.offsetHeight} top`,
       end: "top bottom",
@@ -149,7 +149,10 @@ function initNavbarStateManagement() {
 
 // Cleanup function to be called when navigating away
 export function cleanupNavbarAnimations() {
-  ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+  // Only kill the navbar's ScrollTrigger instance
+  if (navbarScrollTrigger) {
+    navbarScrollTrigger.kill();
+  }
   window.isScrolledPast = false;
 }
 

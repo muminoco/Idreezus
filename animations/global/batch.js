@@ -59,6 +59,10 @@ export function setupBatchAnimation(selector, options = {}) {
     // Convert delay from milliseconds to seconds for GSAP
     const delayInSeconds = config.delay / 1000;
 
+    // Create a Map to store animations for each element
+    // This helps properly manage animation states when once:false
+    const elementAnimations = new Map();
+
     // Set initial state of elements
     gsap.set(selector, {
       opacity: config.initialOpacity,
@@ -76,13 +80,32 @@ export function setupBatchAnimation(selector, options = {}) {
         markers: isMarkersOn, // Show markers for debugging when flag is on
 
         // When elements enter viewport
-        onEnter: (batch) => {
+        onEnter: (batch, triggers) => {
           if (batch.length === 0) return;
 
           try {
             // Create a function to run the animation
             const runAnimation = () => {
-              config.animation(batch);
+              // Kill any existing animations on these elements first
+              batch.forEach((element) => {
+                if (elementAnimations.has(element)) {
+                  const oldAnim = elementAnimations.get(element);
+                  if (oldAnim && oldAnim.kill) {
+                    oldAnim.kill();
+                  }
+                }
+              });
+
+              // Reset to initial state to ensure clean animation
+              gsap.set(batch, {
+                opacity: config.initialOpacity,
+              });
+
+              // Create and store the new animation
+              const anim = config.animation(batch);
+              batch.forEach((element) => {
+                elementAnimations.set(element, anim);
+              });
             };
 
             // Apply delay if specified, otherwise run immediately
@@ -92,31 +115,58 @@ export function setupBatchAnimation(selector, options = {}) {
               runAnimation();
             }
           } catch (animError) {
-            console.warn(
-              `Error in batch animation for "${selector}":`,
-              animError
-            );
+            // Error handling without console logging
           }
         },
 
         // When elements leave viewport (only used if once:false)
-        onLeave: (batch) => {
+        onLeave: (batch, triggers) => {
           if (config.once || batch.length === 0) return;
 
-          gsap.set(batch, {
-            opacity: config.initialOpacity,
-            y: -30, // Default offset for leaving upward
+          batch.forEach((element) => {
+            // Kill any existing animations
+            if (elementAnimations.has(element)) {
+              const anim = elementAnimations.get(element);
+              if (anim && anim.kill) {
+                anim.kill();
+              }
+              elementAnimations.delete(element);
+            }
+
+            // Reset to leaving state
+            gsap.set(element, {
+              opacity: config.initialOpacity,
+            });
           });
         },
 
         // When elements re-enter viewport (only used if once:false)
-        onEnterBack: (batch) => {
+        onEnterBack: (batch, triggers) => {
           if (config.once || batch.length === 0) return;
 
           try {
             // Create a function to run the animation
             const runAnimation = () => {
-              config.animation(batch);
+              // Kill any existing animations on these elements first
+              batch.forEach((element) => {
+                if (elementAnimations.has(element)) {
+                  const oldAnim = elementAnimations.get(element);
+                  if (oldAnim && oldAnim.kill) {
+                    oldAnim.kill();
+                  }
+                }
+              });
+
+              // Reset to initial state to ensure clean animation
+              gsap.set(batch, {
+                opacity: config.initialOpacity,
+              });
+
+              // Create and store the new animation
+              const anim = config.animation(batch);
+              batch.forEach((element) => {
+                elementAnimations.set(element, anim);
+              });
             };
 
             // Apply delay if specified, otherwise run immediately
@@ -126,20 +176,28 @@ export function setupBatchAnimation(selector, options = {}) {
               runAnimation();
             }
           } catch (animError) {
-            console.warn(
-              `Error in batch re-enter animation for "${selector}":`,
-              animError
-            );
+            // Error handling without console logging
           }
         },
 
         // When elements leave viewport upward (only used if once:false)
-        onLeaveBack: (batch) => {
+        onLeaveBack: (batch, triggers) => {
           if (config.once || batch.length === 0) return;
 
-          gsap.set(batch, {
-            opacity: config.initialOpacity,
-            y: 30, // Default offset for leaving downward
+          batch.forEach((element) => {
+            // Kill any existing animations
+            if (elementAnimations.has(element)) {
+              const anim = elementAnimations.get(element);
+              if (anim && anim.kill) {
+                anim.kill();
+              }
+              elementAnimations.delete(element);
+            }
+
+            // Reset to leaving state
+            gsap.set(element, {
+              opacity: config.initialOpacity,
+            });
           });
         },
       };
@@ -150,12 +208,11 @@ export function setupBatchAnimation(selector, options = {}) {
       }
 
       ScrollTrigger.batch(selector, batchSettings);
-      console.info(`Batch animation initialized for "${selector}"`);
     } catch (batchError) {
-      console.warn(`Failed to create batch for "${selector}":`, batchError);
+      // Error handling without console logging
     }
   } catch (error) {
-    console.error(`Error setting up batch animation for "${selector}":`, error);
+    // Error handling without console logging
   }
 }
 
@@ -170,6 +227,14 @@ export const batchAnimations = {
       opacity: 1,
       duration: 0.7,
       stagger: 0.1,
+    }),
+
+  contentCardReveal: (batch) =>
+    gsap.to(batch, {
+      opacity: 1,
+      duration: 0.75,
+      stagger: { from: "edges", each: 0.05 },
+      y: -10,
     }),
 
   // Fade in with slide up
@@ -201,6 +266,22 @@ export const batchAnimations = {
       stagger: 0.1,
       ease: "power2.out",
     }),
+
+  // Simple blur in
+  blurIn: (batch) =>
+    gsap.fromTo(
+      batch,
+      {
+        opacity: 0,
+        filter: "blur(4px)",
+      },
+      {
+        opacity: 1,
+        filter: "blur(0px)",
+        duration: 0.7,
+        stagger: 0.2,
+      }
+    ),
 };
 
 /**
@@ -213,24 +294,8 @@ export const batchAnimations = {
  * document.addEventListener('DOMContentLoaded', initBatchAnimations);
  */
 export function initBatchAnimations() {
-  // Cards or grid items with basic fade up
-  setupBatchAnimation(".card");
-
-  // List items with delayed stagger
-  setupBatchAnimation(".list-item", {
-    animation: (batch) =>
-      gsap.to(batch, {
-        opacity: 1,
-        y: 0,
-        stagger: 0.05,
-        duration: 0.5,
-      }),
-  });
-
-  // Feature boxes with scale effect
-  setupBatchAnimation(".feature", {
-    animation: batchAnimations.scaleIn,
-    initialOpacity: 0,
+  setupBatchAnimation(".swiper-slide.is-content-card", {
+    animation: batchAnimations.contentCardReveal,
   });
 }
 
