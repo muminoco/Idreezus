@@ -1,5 +1,5 @@
 // Debug mode - set to true to test preloader on every refresh
-const debugMode = true;
+const debugMode = false;
 
 // Preloader text options - easily add or remove texts here
 const preloaderTexts = [

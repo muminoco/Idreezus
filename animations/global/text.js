@@ -15,22 +15,27 @@ export const animations = {
   title: {
     selector: `[${animationAttributeName}="title"]`,
     animate: (element, delay = 0) => {
-      const split = splitTextForAnimation(element, [SPLIT_TYPES.WORDS]);
+      const split = splitTextForAnimation(element, [
+        SPLIT_TYPES.CHARS,
+        SPLIT_TYPES.WORDS,
+      ]);
 
       createBaseAnimation(element, (target, tl) => {
-        tl.from(split.words, {
-          y: 30,
+        tl.from(split.chars, {
+          scale: 1.3,
           opacity: 0,
-          duration: 0.75,
+          filter: "blur(6px)",
+          // textShadow: "0 0 20px rgba(245, 110, 0, 0.7)",
+          duration: 1.25,
           delay,
-          stagger: 0.1,
-          ease: "back.out(1.7)",
+          stagger: { each: 0.04, from: "center" },
+          ease: "power1.out",
         });
       });
     },
   },
 
-  // Heading animations
+  // Heading cinematic - dramatic zoom with depth and blur like a movie title
   heading: {
     selector: `[${animationAttributeName}="heading"]`,
     animate: (element, delay = 0) => {
@@ -41,13 +46,14 @@ export const animations = {
 
       createBaseAnimation(element, (target, tl) => {
         tl.from(split.chars, {
-          filter: "blur(2px)",
-          yPercent: 25,
+          scale: 1.2,
           opacity: 0,
-          duration: 0.75,
+          filter: "blur(3px)",
+          // textShadow: "0 0 20px rgba(186, 153, 45, 0.7)",
+          duration: 1.2,
           delay,
-          stagger: { each: 0.02, from: "left" },
-          ease: "sine.out",
+          stagger: { each: 0.03, from: "left" },
+          ease: "power2.out",
         });
       });
     },
@@ -78,7 +84,7 @@ export const animations = {
     },
   },
 
-  // handwriting animations
+  // Handwriting smear - letters appearing with a horizontal blur like wet ink
   handwriting: {
     selector: `[${animationAttributeName}="handwriting"]`,
     animate: (element, delay = 0) => {
@@ -89,9 +95,12 @@ export const animations = {
 
       createBaseAnimation(element, (target, tl) => {
         tl.from(split.chars, {
-          yPercent: 10,
           opacity: 0,
-          duration: 0.3,
+          x: "random(-5, 5)",
+          y: "random(-3, 3)",
+          // rotation: "random(-3, 3)",
+          filter: "blur(2px)",
+          duration: 0.7,
           delay,
           stagger: { each: 0.02 },
           ease: "power1.out",

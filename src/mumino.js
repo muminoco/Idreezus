@@ -5,6 +5,7 @@ import { initThemeToggler } from "../components/themeToggler.js";
 import { initCopyButtons } from "../components/copyButtons.js";
 import { initializeHoverEffects } from "../animations/global/hover.js";
 import { initPreloader } from "../components/preloader.js";
+import { initRevealAnimations } from "../animations/global/reveal.js";
 
 function initializeMumino() {
   // Initialize features
@@ -15,6 +16,7 @@ function initializeMumino() {
   initCopyButtons();
   initializeHoverEffects();
   initPreloader();
+  initRevealAnimations();
 }
 
 initializeMumino();

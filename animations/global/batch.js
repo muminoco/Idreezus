@@ -222,28 +222,46 @@ export function setupBatchAnimation(selector, options = {}) {
  */
 export const batchAnimations = {
   // Simple fade in
+  fadeInSlideUp: (batch) =>
+    gsap.to(batch, {
+      y: -15,
+      opacity: 1,
+      duration: 0.7,
+      stagger: 0.2,
+      ease: "sine.out",
+    }),
+
+  // Simple fade in
   fadeIn: (batch) =>
     gsap.to(batch, {
       opacity: 1,
       duration: 0.7,
-      stagger: 0.1,
+      stagger: 0.2,
+      ease: "sine.out",
     }),
 
   filmstripFade: (batch) =>
     gsap.to(batch, {
       opacity: 1,
       duration: 1,
-      stagger: 0.2,
+      stagger: 0.1,
       ease: "sine.out",
     }),
 
   contentCardReveal: (batch) =>
-    gsap.to(batch, {
-      opacity: 1,
-      duration: 0.75,
-      stagger: { from: "edges", each: 0.05 },
-      y: -10,
-    }),
+    gsap.fromTo(
+      batch,
+      {
+        opacity: 0,
+        y: 10,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.75,
+        stagger: { from: "edges", each: 0.05 },
+      }
+    ),
 
   // Fade in with slide up
   fadeUp: (batch) =>
@@ -306,8 +324,24 @@ export function initBatchAnimations() {
     animation: batchAnimations.contentCardReveal,
   });
 
+  setupBatchAnimation(".swiper-slide.is-journal-card", {
+    animation: batchAnimations.contentCardReveal,
+  });
+
+  setupBatchAnimation(".swiper-slide.is-notecard", {
+    animation: batchAnimations.contentCardReveal,
+  });
+
   setupBatchAnimation(".journal_cms_item", {
     animation: batchAnimations.contentCardReveal,
+  });
+
+  setupBatchAnimation(".side-list_item", {
+    animation: batchAnimations.fadeInSlideUp,
+  });
+
+  setupBatchAnimation(".label-list_item", {
+    animation: batchAnimations.fadeIn,
   });
 
   setupBatchAnimation(".filmstrip_image", {

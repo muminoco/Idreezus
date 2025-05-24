@@ -1,6 +1,6 @@
 // Universal configuration for all trigger types
 const isMarkersOn = false;
-const startScrollerPosition = "90%";
+const startScrollerPosition = "93%";
 
 // Collection of different ScrollTrigger types
 const triggerTypes = {
