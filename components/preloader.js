@@ -180,3 +180,16 @@ if (document.readyState === "loading") {
 } else {
   setInitialContent();
 }
+
+// Function to check if preloader should be shown
+export function shouldShowPreloader() {
+  if (debugMode) return true;
+
+  const lastShownTime = localStorage.getItem("lastPreloaderTime");
+  const currentTime = new Date().getTime();
+
+  if (!lastShownTime) return true;
+
+  // Check if 24 hours have passed
+  return currentTime - parseInt(lastShownTime) >= 24 * 60 * 60 * 1000;
+}

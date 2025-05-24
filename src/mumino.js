@@ -6,6 +6,7 @@ import { initCopyButtons } from "../components/copyButtons.js";
 import { initializeHoverEffects } from "../animations/global/hover.js";
 import { initPreloader } from "../components/preloader.js";
 import { initRevealAnimations } from "../animations/global/reveal.js";
+import { initPageTransition } from "../components/pageTransition.js";
 
 function initializeMumino() {
   // Initialize features
@@ -17,6 +18,7 @@ function initializeMumino() {
   initializeHoverEffects();
   initPreloader();
   initRevealAnimations();
+  initPageTransition();
 }
 
 initializeMumino();
