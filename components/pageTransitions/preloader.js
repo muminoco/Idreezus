@@ -1,16 +1,15 @@
-// Debug mode - set to true to test preloader on every refresh
-const debugMode = false;
+// Debug mode is now managed in the head script
 
 // Preloader text options - easily add or remove texts here
 const preloaderTexts = [
-  "WASGUUD",
+  "AYYY",
   "YERRR",
   "WHATDAHELLY",
   "SALAAMS",
-  "HELLO FRIEND",
+  "HELLO",
   "HALO",
   "IDREEZUS",
-  "LOCK IN",
+  "WELCOME",
 ];
 
 // Function to disable scrolling
@@ -39,19 +38,6 @@ function getCurrentDateEST() {
 // Function to get the next preloader text
 function getNextPreloaderText() {
   const lastShownIndex = localStorage.getItem("lastPreloaderTextIndex");
-  const lastShownTime = localStorage.getItem("lastPreloaderTime");
-  const currentTime = new Date().getTime();
-
-  // Skip 24-hour check if debug mode is enabled
-  if (!debugMode) {
-    // Check if 24 hours have passed
-    if (
-      lastShownTime &&
-      currentTime - parseInt(lastShownTime) < 24 * 60 * 60 * 1000
-    ) {
-      return null; // Don't show preloader if less than 24 hours have passed
-    }
-  }
 
   let nextIndex;
   if (
@@ -63,9 +49,10 @@ function getNextPreloaderText() {
     nextIndex = parseInt(lastShownIndex) + 1;
   }
 
-  // Store the current index and time
+  // Store the current index and date
   localStorage.setItem("lastPreloaderTextIndex", nextIndex);
-  localStorage.setItem("lastPreloaderTime", currentTime);
+  localStorage.setItem("lastPreloaderDate", new Date().toDateString());
+  localStorage.setItem("lastPreloaderTime", new Date().getTime()); // Keep for backward compatibility
 
   return preloaderTexts[nextIndex];
 }
@@ -95,13 +82,21 @@ export function initPreloader() {
     return;
   }
 
-  const preloaderText = getNextPreloaderText();
+  // Check if preloader should be shown (using global config set in head)
+  const shouldShow = window.muminoConfig?.showPreloader ?? false;
 
-  // If no preloader should be shown, return
-  if (!preloaderText) {
+  if (!shouldShow) {
+    console.log("Preloader skipped - not due to show");
     preloader.style.display = "none";
+
+    // Remove animation delay from H1 if preloader is not showing
+    if (animatedH1 && animatedH1.hasAttribute("data-ani-delay")) {
+      animatedH1.removeAttribute("data-ani-delay");
+    }
     return;
   }
+
+  console.log("Initializing preloader animation");
 
   // Add animation delay to H1 if it exists
   if (animatedH1) {
@@ -122,7 +117,8 @@ export function initPreloader() {
     return;
   }
 
-  // Set content
+  // Get and set content
+  const preloaderText = getNextPreloaderText();
   textElement.textContent = preloaderText;
   dateElement.textContent = getCurrentDateEST();
 
@@ -158,7 +154,6 @@ export function initPreloader() {
         duration: 1,
         y: 0,
         filter: "blur(0px)",
-
         ease: "power1.out",
       },
       "-=0.75"
@@ -179,17 +174,4 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", setInitialContent);
 } else {
   setInitialContent();
-}
-
-// Function to check if preloader should be shown
-export function shouldShowPreloader() {
-  if (debugMode) return true;
-
-  const lastShownTime = localStorage.getItem("lastPreloaderTime");
-  const currentTime = new Date().getTime();
-
-  if (!lastShownTime) return true;
-
-  // Check if 24 hours have passed
-  return currentTime - parseInt(lastShownTime) >= 24 * 60 * 60 * 1000;
 }

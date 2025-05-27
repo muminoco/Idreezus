@@ -31,6 +31,12 @@ const isMarkersOn = false;
  */
 export function setupBatchAnimation(selector, options = {}) {
   try {
+    // Check if elements exist before proceeding
+    const elements = document.querySelectorAll(selector);
+    if (elements.length === 0) {
+      return; // Exit early if no elements found
+    }
+
     // Default configuration
     const config = {
       // Animation settings

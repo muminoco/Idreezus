@@ -30,6 +30,7 @@ export const animations = {
           delay,
           stagger: { each: 0.04, from: "center" },
           ease: "power1.out",
+          onComplete: () => split.revert(), // <-- restores original innerHTML
         });
       });
     },
@@ -54,6 +55,7 @@ export const animations = {
           delay,
           stagger: { each: 0.03, from: "left" },
           ease: "power2.out",
+          onComplete: () => split.revert(), // <-- restores original innerHTML
         });
       });
     },
@@ -68,6 +70,7 @@ export const animations = {
         [SPLIT_TYPES.LINES, SPLIT_TYPES.WORDS],
         {
           mask: "lines",
+          autoSplit: true,
         }
       );
 
@@ -79,6 +82,7 @@ export const animations = {
           stagger: 0.1,
           delay: 0.5,
           ease: "power1.out",
+          onComplete: () => split.revert(), // <-- restores original innerHTML
         });
       });
     },
@@ -104,6 +108,7 @@ export const animations = {
           delay,
           stagger: { each: 0.02 },
           ease: "power1.out",
+          onComplete: () => split.revert(), // <-- restores original innerHTML
         });
       });
     },
@@ -124,6 +129,7 @@ export const animations = {
           duration: 0.3,
           delay: 0.25,
           ease: "power1.out",
+          onComplete: () => split.revert(), // <-- restores original innerHTML
         });
       });
     },
@@ -217,9 +223,12 @@ export function runTextAnimations() {
  * Initialize all text animations
  * Call this function from your main JS file
  */
+// in text.js
 export function initializeTextAnimations() {
   document.addEventListener("DOMContentLoaded", () => {
-    runTextAnimations();
+    document.fonts.ready.then(() => {
+      runTextAnimations();
+    });
   });
 }
 

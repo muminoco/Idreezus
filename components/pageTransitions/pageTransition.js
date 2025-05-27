@@ -1,21 +1,36 @@
 function initPageTransition() {
+  // Check if global transitions should be active for initial page load
+  const shouldShowGlobalTransition =
+    window.muminoConfig?.showGlobalTransition ?? true;
+
+  console.log("Initializing page transitions");
+
   // SEQUENCE 1: Initial page load
-  // When the page first loads, the global-transition div starts at opacity 1 (from CSS)
-  // Immediately fade it out to opacity 0 and hide it
-  gsap.fromTo(
-    ".global-transition",
-    {
-      opacity: 1,
-    },
-    {
-      opacity: 0,
-      duration: 0.0001,
-      ease: "sine.out",
-      onComplete: () => {
-        gsap.set(".global-transition", { display: "none" });
+  // Only fade out the initial transition if preloader is NOT showing
+  if (shouldShowGlobalTransition) {
+    // When the page first loads, the global-transition div starts at opacity 1 (from CSS)
+    // Immediately fade it out to opacity 0 and hide it
+    gsap.fromTo(
+      ".global-transition",
+      {
+        opacity: 1,
       },
+      {
+        opacity: 0,
+        duration: 0.3,
+        ease: "sine.out",
+        onComplete: () => {
+          gsap.set(".global-transition", { display: "none" });
+        },
+      }
+    );
+  } else {
+    // If preloader is showing, just hide the global transition immediately
+    const globalTransition = document.querySelector(".global-transition");
+    if (globalTransition) {
+      gsap.set(globalTransition, { display: "none", opacity: 0 });
     }
-  );
+  }
 
   // SEQUENCE 2: Link click and page transition
   // When an internal link is clicked:
