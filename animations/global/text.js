@@ -108,7 +108,8 @@ export const animations = {
           delay,
           stagger: { each: 0.02 },
           ease: "power1.out",
-          onComplete: () => split.revert(), // <-- restores original innerHTML
+          // Causes issues for handwriting font, don't revert ->
+          // onComplete: () => split.revert(), // <-- restores original innerHTML
         });
       });
     },
