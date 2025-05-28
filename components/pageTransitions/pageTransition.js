@@ -42,11 +42,28 @@ function initPageTransition() {
 
     if (!link) return;
 
-    // Check if it's an internal link
+    // Enhanced validation checks for internal links
+    const isInternalLink = link.hostname === window.location.hostname;
+    const hasValidHref = link.href && link.href.trim() !== "";
+    const isNotHashOnly =
+      !link.hash || (link.hash && link.pathname !== window.location.pathname);
+    const isNotBlankTarget = link.target !== "_blank";
+    const isNotDownload = !link.hasAttribute("download");
+    const isNotMailTo = !link.href.startsWith("mailto:");
+    const isNotTel = !link.href.startsWith("tel:");
+    const hasValidProtocol =
+      link.protocol === "http:" || link.protocol === "https:";
+
+    // Only proceed with transition if all conditions are met
     if (
-      link.hostname === window.location.hostname &&
-      !link.hash &&
-      link.target !== "_blank"
+      isInternalLink &&
+      hasValidHref &&
+      isNotHashOnly &&
+      isNotBlankTarget &&
+      isNotDownload &&
+      isNotMailTo &&
+      isNotTel &&
+      hasValidProtocol
     ) {
       e.preventDefault();
       const destination = link.href;
