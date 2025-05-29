@@ -94,8 +94,6 @@ export function initPreloader() {
     return;
   }
 
-  console.log("Initializing preloader animation");
-
   // Add animation delay to H1 if it exists
   if (animatedH1) {
     animatedH1.setAttribute("data-ani-delay", "2500");

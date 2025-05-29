@@ -3,8 +3,6 @@ function initPageTransition() {
   const shouldShowGlobalTransition =
     window.muminoConfig?.showGlobalTransition ?? true;
 
-  console.log("Initializing page transitions");
-
   // SEQUENCE 1: Initial page load
   // Only fade out the initial transition if preloader is NOT showing
   if (shouldShowGlobalTransition) {
@@ -43,14 +41,37 @@ function initPageTransition() {
     if (!link) return;
 
     // Enhanced validation checks for internal links
+    // Check if the link is to the same domain/website
     const isInternalLink = link.hostname === window.location.hostname;
-    const hasValidHref = link.href && link.href.trim() !== "";
-    const isNotHashOnly =
-      !link.hash || (link.hash && link.pathname !== window.location.pathname);
+
+    // Normalize current path (remove trailing slash except for root)
+    const currentPath =
+      window.location.pathname === "/"
+        ? ""
+        : window.location.pathname.replace(/\/$/, "");
+
+    // Normalize link path (remove trailing slash except for root)
+    const linkPath =
+      link.pathname === "/" ? "" : link.pathname.replace(/\/$/, "");
+
+    // Ensure the href exists and isn't just a hash on any path
+    const hasValidHref =
+      link.href &&
+      link.href.trim() !== "" &&
+      link.href !== window.location.origin + currentPath + "#" &&
+      (link.hash === "" || link.hash.length > 1); // Ensure hash isn't empty or just '#'
+
+    // Prevent transitions for hash links on the same page
+    const isNotHashOnly = !link.hash || (link.hash && linkPath !== currentPath);
+    // Skip transition for links that open in new tabs
     const isNotBlankTarget = link.target !== "_blank";
+    // Skip transition for downloadable files
     const isNotDownload = !link.hasAttribute("download");
+    // Skip transition for email links
     const isNotMailTo = !link.href.startsWith("mailto:");
+    // Skip transition for telephone links
     const isNotTel = !link.href.startsWith("tel:");
+    // Ensure link uses standard web protocols
     const hasValidProtocol =
       link.protocol === "http:" || link.protocol === "https:";
 

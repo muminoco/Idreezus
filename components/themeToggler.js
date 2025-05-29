@@ -25,19 +25,44 @@ export function preventThemeFlash() {
   }
 }
 
-// Initialize theme based on system preference or stored preference
+// Initialize theme with tracking based on system preference or stored preference
 function initializeTheme() {
   const storedTheme = localStorage.getItem(THEME_PREFERENCE_KEY);
+  let initialTheme;
+  let themeSource;
 
   if (USE_SYSTEM_PREFERENCE && !storedTheme) {
-    // Use system preference if no stored preference
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
-    setTheme(prefersDark ? "dark" : "light");
+    initialTheme = prefersDark ? "dark" : "light";
+    themeSource = "system_preference";
+  } else if (storedTheme) {
+    initialTheme = storedTheme;
+    themeSource = "stored_preference";
   } else {
-    // Use stored preference or default to light
-    setTheme(storedTheme || "light");
+    initialTheme = "light";
+    themeSource = "default";
+  }
+
+  setTheme(initialTheme);
+
+  // Track initial theme to GA4
+  if (typeof gtag === "function") {
+    gtag("event", "theme_initial", {
+      event_category: "UI Preference",
+      theme_value: initialTheme,
+      theme_source: themeSource,
+    });
+  }
+
+  // Track initial theme to Clarity
+  if (typeof clarity === "function") {
+    clarity("event", "theme_initial", {
+      category: "UI Preference",
+      theme_value: initialTheme,
+      theme_source: themeSource,
+    });
   }
 }
 
@@ -66,11 +91,30 @@ function setTheme(theme) {
   localStorage.setItem(THEME_PREFERENCE_KEY, theme);
 }
 
-// Toggle theme function
 function toggleTheme() {
   const currentTheme = localStorage.getItem(THEME_PREFERENCE_KEY) || "light";
   const newTheme = currentTheme === "light" ? "dark" : "light";
+
   setTheme(newTheme);
+
+  // Track theme change
+  if (typeof gtag === "function") {
+    gtag("event", "theme_toggle", {
+      event_category: "UI Preference",
+      previous_theme: currentTheme,
+      new_theme: newTheme,
+      event_label: `${currentTheme}_to_${newTheme}`,
+    });
+  }
+
+  // Track to Clarity if available
+  if (typeof clarity === "function") {
+    clarity("event", "theme_toggle", {
+      category: "UI Preference",
+      previous_theme: currentTheme,
+      new_theme: newTheme,
+    });
+  }
 }
 
 // Add click event listeners to all theme toggle buttons
