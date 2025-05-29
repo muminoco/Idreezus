@@ -106,9 +106,9 @@ export const animations = {
           filter: "blur(2px)",
           duration: 0.7,
           delay,
-          stagger: { each: 0.02 },
+          stagger: { each: 0.01 },
           ease: "power1.out",
-          // Causes issues for handwriting font, don't revert ->
+          // Sometimes causes issues for handwriting font, don't revert for now ->
           // onComplete: () => split.revert(), // <-- restores original innerHTML
         });
       });
