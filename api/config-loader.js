@@ -11,14 +11,10 @@ const {
  */
 function loadProjectConfig(projectId) {
   try {
-    // Construct path to project config
-    const configPath = path.join(
-      __dirname,
-      "..",
-      "projects",
-      projectId,
-      "config"
-    );
+    // Handle both local development and serverless environments
+    const configPath = process.env.VERCEL
+      ? path.join(process.cwd(), "projects", projectId, "config")
+      : path.join(__dirname, "..", "projects", projectId, "config");
 
     // Load the config (this will load the index.js which exports all configs)
     const config = require(configPath);
