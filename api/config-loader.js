@@ -11,10 +11,18 @@ const {
  */
 function loadProjectConfig(projectId) {
   try {
-    // Handle both local development and serverless environments
-    const configPath = process.env.VERCEL
-      ? path.join(process.cwd(), "projects", projectId, "config")
-      : path.join(__dirname, "..", "projects", projectId, "config");
+    // Handle different environments
+    let configPath;
+
+    if (process.env.VERCEL) {
+      // In Vercel serverless environment
+      configPath = path.join(process.cwd(), "config", "projects", projectId);
+    } else {
+      // In local development
+      configPath = path.join(__dirname, "..", "projects", projectId, "config");
+    }
+
+    console.log(`Loading config from: ${configPath}`); // Debug log
 
     // Load the config (this will load the index.js which exports all configs)
     const config = require(configPath);
