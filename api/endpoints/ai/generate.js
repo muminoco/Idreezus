@@ -1,33 +1,36 @@
-// Import the official Anthropic SDK
-const Anthropic = require("@anthropic-ai/sdk");
-const { BASIC_CHAT_PROMPT } = require("../../../shared/constants");
+const { createProvider } = require("../../providers");
+const { loadProjectConfig } = require("../../config-loader");
 const {
   validateChatInput,
   formatErrorResponse,
 } = require("../../../shared/js-utils");
 
-// Initialize the Anthropic client with our API key
-// This is what actually talks to Claude's servers
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 /**
- * Main function that handles chat generation requests
- * This is structured as a standalone function so it can easily become
- * a Vercel serverless function later
+ * Universal AI generation handler that works with any provider
+ * Routes requests based on project configuration
  */
 async function generateHandler(req, res) {
   try {
-    // Only accept POST requests (GET wouldn't make sense for sending messages)
+    // Only accept POST requests
     if (req.method !== "POST") {
       return res.status(405).json(formatErrorResponse("Method not allowed"));
     }
 
-    // Extract the user's message from the request body
-    const { message } = req.body;
+    // Extract request data
+    const { message, project: projectId } = req.body;
 
-    // Validate the input before sending to Claude
+    // Validate required fields
+    if (!projectId) {
+      return res
+        .status(400)
+        .json(
+          formatErrorResponse("Project ID is required", [
+            "Please specify which project this request is for",
+          ])
+        );
+    }
+
+    // Validate the message
     const validation = validateChatInput(message);
     if (!validation.isValid) {
       return res
@@ -35,44 +38,85 @@ async function generateHandler(req, res) {
         .json(formatErrorResponse("Invalid input", validation.errors));
     }
 
-    // Create the full prompt for Claude
-    // We add our system prompt to give Claude context about how to respond
-    const fullPrompt = `${BASIC_CHAT_PROMPT}\n\nUser: ${message}`;
+    console.log(
+      `Processing request for project: ${projectId}, message: ${message}`
+    );
 
-    console.log("Sending message to Claude:", message); // Debug log
+    // Load project configuration
+    let projectConfig;
+    try {
+      projectConfig = loadProjectConfig(projectId);
+    } catch (configError) {
+      return res
+        .status(400)
+        .json(
+          formatErrorResponse("Invalid project configuration", [
+            configError.message,
+          ])
+        );
+    }
 
-    // Make the actual API call to Claude
-    const response = await anthropic.messages.create({
-      model: process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-20241022",
-      max_tokens: 300, // Limit response length (saves money)
-      temperature: 0.7, // How creative/random the response should be (0-1)
-      messages: [
-        {
-          role: "user",
-          content: fullPrompt,
-        },
-      ],
-    });
+    // Create AI provider based on project config
+    let provider;
+    try {
+      provider = createProvider(projectConfig.ai);
+    } catch (providerError) {
+      return res
+        .status(500)
+        .json(
+          formatErrorResponse("Failed to initialize AI provider", [
+            providerError.message,
+          ])
+        );
+    }
 
-    // Extract the text from Claude's response
-    // Claude's API returns an array of content blocks, we want the first one
-    const generatedText = response.content[0].text;
+    console.log(
+      `Using AI provider: ${projectConfig.ai.provider} with model: ${projectConfig.ai.model}`
+    );
 
-    console.log("Received response from Claude"); // Debug log
+    // Generate response using the provider
+    let aiResponse;
+    try {
+      aiResponse = await provider.generateResponse(message);
+    } catch (aiError) {
+      console.error("AI generation error:", aiError);
 
-    // Send successful response back to Webflow
+      // Try fallback if configured
+      if (projectConfig.ai.fallback) {
+        console.log("Trying fallback provider...");
+        try {
+          const fallbackProvider = createProvider({
+            ...projectConfig.ai,
+            provider: projectConfig.ai.fallback.provider,
+            model: projectConfig.ai.fallback.model,
+          });
+          aiResponse = await fallbackProvider.generateResponse(message);
+        } catch (fallbackError) {
+          console.error("Fallback also failed:", fallbackError);
+          throw aiError; // Throw original error
+        }
+      } else {
+        throw aiError;
+      }
+    }
+
+    console.log("Successfully generated AI response");
+
+    // Send successful response
     res.json({
       success: true,
       data: {
-        message: generatedText,
-        model: process.env.ANTHROPIC_MODEL,
+        message: aiResponse,
+        provider: projectConfig.ai.provider,
+        model: projectConfig.ai.model,
+        project: projectId,
         timestamp: new Date().toISOString(),
       },
     });
   } catch (error) {
     console.error("Generate endpoint error:", error);
 
-    // Handle specific API errors with user-friendly messages
+    // Handle specific errors
     if (error.status === 401) {
       return res.status(401).json(formatErrorResponse("Invalid API key"));
     }
@@ -80,16 +124,10 @@ async function generateHandler(req, res) {
     if (error.status === 429) {
       return res
         .status(429)
-        .json(formatErrorResponse("Too many requests - please wait a moment"));
+        .json(formatErrorResponse("Too many requests - please wait"));
     }
 
-    if (error.status === 400) {
-      return res
-        .status(400)
-        .json(formatErrorResponse("Invalid request to Claude API"));
-    }
-
-    // Generic error for anything else
+    // Generic error
     res
       .status(500)
       .json(

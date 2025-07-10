@@ -5,9 +5,10 @@
 
   // Configuration object - all our settings in one place
   const CONFIG = {
-    API_BASE_URL: "http://localhost:3000", // Where our API server is running
+    API_BASE_URL: "http://localhost:3000",
+    PROJECT_ID: "pricing-tool", // ← This is the ONLY line you change per project!
     ENDPOINTS: {
-      GENERATE: "/api/ai/generate", // The endpoint for sending messages
+      GENERATE: "/api/ai/generate",
     },
     ELEMENTS: {
       INPUT: "chat-input", // ID of the input field
@@ -51,7 +52,10 @@
           "Content-Type": "application/json", // Tell server we're sending JSON
           "X-Requested-With": "XMLHttpRequest", // Helps with CORS
         },
-        body: JSON.stringify({ message: message }), // Convert message to JSON
+        body: JSON.stringify({
+          message: message,
+          project: CONFIG.PROJECT_ID,
+        }),
       }
     );
 
