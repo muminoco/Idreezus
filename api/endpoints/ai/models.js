@@ -1,4 +1,4 @@
-const { AI_MODELS } = require("../../../shared/constants");
+const { AI_PROVIDERS, AI_MODELS } = require("../../../shared/constants");
 const { formatErrorResponse } = require("../../../shared/js-utils");
 
 /**
@@ -16,8 +16,17 @@ async function modelsHandler(req, res) {
     res.json({
       success: true,
       data: {
-        current: process.env.ANTHROPIC_MODEL || AI_MODELS.CLAUDE.HAIKU,
-        available: AI_MODELS,
+        current: {
+          provider: process.env.ANTHROPIC_MODEL ? "anthropic" : "openai",
+          model:
+            process.env.ANTHROPIC_MODEL ||
+            process.env.OPENAI_MODEL ||
+            AI_MODELS.ANTHROPIC.CLAUDE_35_HAIKU,
+        },
+        available: {
+          providers: AI_PROVIDERS,
+          models: AI_MODELS,
+        },
         timestamp: new Date().toISOString(),
       },
     });

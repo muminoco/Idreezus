@@ -54,8 +54,50 @@ function formatErrorResponse(message, details = []) {
   };
 }
 
+/**
+ * Validates that a model is compatible with the specified provider
+ * @param {string} provider - The AI provider (e.g., 'openai', 'anthropic')
+ * @param {string} model - The model name to validate
+ * @returns {Object} - Validation result with isValid boolean and error message
+ */
+function validateProviderModel(provider, model) {
+  const { AI_PROVIDERS, AI_MODELS } = require("../constants");
+
+  // Find the provider key (e.g., 'OPENAI' for provider 'openai')
+  const providerKey = Object.keys(AI_PROVIDERS).find(
+    (key) => AI_PROVIDERS[key] === provider
+  );
+
+  if (!providerKey) {
+    return {
+      isValid: false,
+      error: `Unknown provider: ${provider}. Valid providers: ${Object.values(
+        AI_PROVIDERS
+      ).join(", ")}`,
+    };
+  }
+
+  // Get valid models for this provider
+  const validModels = Object.values(AI_MODELS[providerKey]);
+
+  if (!validModels.includes(model)) {
+    return {
+      isValid: false,
+      error: `Model '${model}' is not valid for provider '${provider}'. Valid models: ${validModels.join(
+        ", "
+      )}`,
+    };
+  }
+
+  return {
+    isValid: true,
+    error: null,
+  };
+}
+
 module.exports = {
   validateChatInput,
   sanitizeHtml,
   formatErrorResponse,
+  validateProviderModel, // ← ADD THIS LINE
 };

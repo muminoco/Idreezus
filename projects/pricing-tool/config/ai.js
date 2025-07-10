@@ -1,10 +1,11 @@
+// Import the constants to use in our config
+const { AI_PROVIDERS, AI_MODELS } = require("../../../shared/constants");
+
 // AI-specific configuration for the pricing tool project
 module.exports = {
-  // Which AI provider to use as primary
-  provider: "openai",
-
-  // Model configuration
-  model: "gpt-3.5-turbo",
+  // Use constants instead of hardcoded strings
+  provider: AI_PROVIDERS.ANTHROPIC,
+  model: AI_MODELS.ANTHROPIC.CLAUDE_35_HAIKU,
 
   // System prompt specific to this project
   systemPrompt: `You are a helpful AI assistant. Please respond to the user's message in a friendly and informative way. Keep your response concise (1-2 paragraphs maximum).`,
@@ -15,13 +16,13 @@ module.exports = {
     temperature: 0.7,
   },
 
-  // Fallback configuration (optional)
+  // Fallback configuration using constants
   fallback: {
-    provider: "openai",
-    model: "gpt-3.5-turbo",
+    provider: AI_PROVIDERS.OPENAI,
+    model: AI_MODELS.OPENAI.GPT_3_5_TURBO,
   },
 
-  // Project-specific features (future expansion)
+  // Project-specific features
   features: {
     conversationHistory: false,
     contentFiltering: false,

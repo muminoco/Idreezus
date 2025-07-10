@@ -1,5 +1,8 @@
 const path = require("path");
-const { formatErrorResponse } = require("../shared/js-utils");
+const {
+  formatErrorResponse,
+  validateProviderModel,
+} = require("../shared/js-utils");
 
 /**
  * Loads configuration for a specific project
@@ -25,10 +28,40 @@ function loadProjectConfig(projectId) {
       throw new Error(`AI configuration not found for project: ${projectId}`);
     }
 
+    // Validate provider/model compatibility
+    const validation = validateProviderModel(
+      config.ai.provider,
+      config.ai.model
+    );
+    if (!validation.isValid) {
+      throw new Error(
+        `Invalid AI configuration for project ${projectId}: ${validation.error}`
+      );
+    }
+
+    // Validate fallback if it exists
+    if (config.ai.fallback) {
+      const fallbackValidation = validateProviderModel(
+        config.ai.fallback.provider,
+        config.ai.fallback.model
+      );
+      if (!fallbackValidation.isValid) {
+        throw new Error(
+          `Invalid fallback AI configuration for project ${projectId}: ${fallbackValidation.error}`
+        );
+      }
+    }
+
+    console.log(
+      `✅ Loaded valid config for project: ${projectId} (${config.ai.provider}/${config.ai.model})`
+    );
+
     return config;
   } catch (error) {
     console.error(`Failed to load config for project ${projectId}:`, error);
-    throw new Error(`Invalid project configuration: ${projectId}`);
+    throw new Error(
+      `Invalid project configuration: ${projectId} - ${error.message}`
+    );
   }
 }
 
