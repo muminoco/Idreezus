@@ -11,7 +11,7 @@
         return "http://localhost:3000"; // Local development
       }
       // Replace 'your-app-name' with your actual Vercel app name
-      return "https://your-app-name.vercel.app"; // Production (you'll update this after deployment)
+      return "https://idreezus.vercel.app/"; // Production (you'll update this after deployment)
     })(),
     PROJECT_ID: "pricing-tool", // ← This is the ONLY line you change per project!
     ENDPOINTS: {
