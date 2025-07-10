@@ -5,52 +5,16 @@ const {
   validateChatInput,
   formatErrorResponse,
 } = require("../shared/js-utils");
-
-/**
- * Get CORS headers for the current request
- * @param {Object} req - The request object
- * @returns {Object} - CORS headers with correct origin
- */
-function getCorsHeaders(req) {
-  const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
-    .split(",")
-    .map((origin) => origin.trim());
-  const requestOrigin = req.headers.origin;
-
-  // Check if the request origin is in our allowed list
-  const allowedOrigin = allowedOrigins.includes(requestOrigin)
-    ? requestOrigin
-    : allowedOrigins[0] || "*";
-
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "Content-Type, Authorization, X-Requested-With",
-    "Access-Control-Allow-Credentials": "true",
-  };
-}
+const { handleCors } = require("../shared/cors-utils"); // Import shared CORS utility
 
 /**
  * Serverless function for AI generation
  * This replaces the Express route handler
  */
 export default async function handler(req, res) {
-  // Get proper CORS headers for this request
-  const corsHeaders = getCorsHeaders(req);
-
-  // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    Object.keys(corsHeaders).forEach((key) => {
-      res.setHeader(key, corsHeaders[key]);
-    });
-    return res.status(200).end();
-  }
-
-  // Set CORS headers for all responses
-  Object.keys(corsHeaders).forEach((key) => {
-    res.setHeader(key, corsHeaders[key]);
-  });
+  // Handle CORS setup and preflight - returns true if this was just a preflight check
+  // Unlike Express apps, serverless functions need manual CORS handling per request
+  if (handleCors(req, res)) return;
 
   try {
     // Only accept POST requests
