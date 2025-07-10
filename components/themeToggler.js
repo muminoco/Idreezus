@@ -47,20 +47,10 @@ function initializeTheme() {
 
   setTheme(initialTheme);
 
-  // Track initial theme to GA4
+  // Set user properties for GA4 (replaces the event tracking)
   if (typeof gtag === "function") {
-    gtag("event", "theme_initial", {
-      event_category: "UI Preference",
-      theme_value: initialTheme,
-      theme_source: themeSource,
-    });
-  }
-
-  // Track initial theme to Clarity
-  if (typeof clarity === "function") {
-    clarity("event", "theme_initial", {
-      category: "UI Preference",
-      theme_value: initialTheme,
+    gtag("set", {
+      theme_preference: initialTheme,
       theme_source: themeSource,
     });
   }
@@ -97,8 +87,14 @@ function toggleTheme() {
 
   setTheme(newTheme);
 
-  // Track theme change
+  // Update user property and track the toggle event
   if (typeof gtag === "function") {
+    // Update the user property with new preference
+    gtag("set", {
+      theme_preference: newTheme,
+    });
+
+    // Still track the toggle as an event since it's an actual user action
     gtag("event", "theme_toggle", {
       event_category: "UI Preference",
       previous_theme: currentTheme,

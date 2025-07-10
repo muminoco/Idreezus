@@ -84,7 +84,6 @@ export function initPreloader() {
   const shouldShow = window.muminoConfig?.showPreloader ?? false;
 
   if (!shouldShow) {
-    console.log("Preloader skipped - not due to show");
     preloader.style.display = "none";
 
     // Remove animation delay from H1 if preloader is not showing
