@@ -11,21 +11,48 @@ const {
  */
 function loadProjectConfig(projectId) {
   try {
-    // Handle different environments
     let configPath;
+    let config;
 
-    if (process.env.VERCEL) {
-      // In Vercel serverless environment
-      configPath = path.join(process.cwd(), "config", "projects", projectId);
-    } else {
-      // In local development
-      configPath = path.join(__dirname, "..", "projects", projectId, "config");
+    // Try the new structure first (config/projects/projectId)
+    try {
+      if (process.env.VERCEL) {
+        // In Vercel serverless environment
+        configPath = path.join(process.cwd(), "config", "projects", projectId);
+      } else {
+        // In local development - try new structure
+        configPath = path.join(
+          __dirname,
+          "..",
+          "config",
+          "projects",
+          projectId
+        );
+      }
+
+      console.log(`Trying config path: ${configPath}`);
+      config = require(configPath);
+      console.log(`✅ Found config at: ${configPath}`);
+    } catch (newStructureError) {
+      console.log(`Config not found at new location, trying old structure...`);
+
+      // Fallback to old structure (projects/projectId/config)
+      if (process.env.VERCEL) {
+        configPath = path.join(process.cwd(), "projects", projectId, "config");
+      } else {
+        configPath = path.join(
+          __dirname,
+          "..",
+          "projects",
+          projectId,
+          "config"
+        );
+      }
+
+      console.log(`Trying fallback config path: ${configPath}`);
+      config = require(configPath);
+      console.log(`✅ Found config at fallback location: ${configPath}`);
     }
-
-    console.log(`Loading config from: ${configPath}`); // Debug log
-
-    // Load the config (this will load the index.js which exports all configs)
-    const config = require(configPath);
 
     // Validate that AI config exists
     if (!config.ai) {
@@ -74,8 +101,6 @@ function loadProjectConfig(projectId) {
  * @returns {Array} - List of available project IDs
  */
 function getAvailableProjects() {
-  // This could scan the projects directory in the future
-  // For now, return known projects
   return ["pricing-tool"];
 }
 

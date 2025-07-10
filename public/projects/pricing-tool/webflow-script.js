@@ -6,12 +6,18 @@
   // Configuration object - all our settings in one place
   const CONFIG = {
     API_BASE_URL: (() => {
-      const hostname = window.location.hostname;
-      if (hostname === "localhost" || hostname === "127.0.0.1") {
-        return "http://localhost:3000"; // Local development
+      // Get the base URL from where this script was loaded
+      const currentScript = document.currentScript;
+      if (currentScript && currentScript.src) {
+        const scriptUrl = new URL(currentScript.src);
+        const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
+        console.log("🔗 Using API from same domain as script:", baseUrl);
+        return baseUrl;
       }
-      // Replace 'your-app-name' with your actual Vercel app name
-      return "https://idreezus.vercel.app/"; // Production (you'll update this after deployment)
+
+      // Fallback to production if we can't detect
+      console.log("🚀 Fallback to production API");
+      return "https://idreezus.vercel.app";
     })(),
     PROJECT_ID: "pricing-tool", // ← This is the ONLY line you change per project!
     ENDPOINTS: {

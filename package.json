@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node api/server.js",
-    "dev": "nodemon api/server.js",
+    "dev": "concurrently \"nodemon api/server.js\" \"local-ssl-proxy --source 3001 --target 3000\"",
+    "dev:server-only": "nodemon api/server.js",
     "build": "echo 'No build step required'",
     "vercel-build": "echo 'Build complete'"
   },
@@ -29,6 +30,7 @@
     "openai": "^5.8.3"
   },
   "devDependencies": {
+    "concurrently": "^9.2.0",
     "nodemon": "^3.1.10"
   }
 }
