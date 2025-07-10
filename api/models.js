@@ -1,20 +1,33 @@
 const { AI_PROVIDERS, AI_MODELS } = require("../shared/constants");
 const { formatErrorResponse } = require("../shared/js-utils");
 
-// CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers":
-    "Content-Type, Authorization, X-Requested-With",
-  "Access-Control-Allow-Credentials": "true",
-};
-
 /**
- * Serverless function for returning available AI models
+ * Get CORS headers for the current request
+ * @param {Object} req - The request object
+ * @returns {Object} - CORS headers with correct origin
  */
+function getCorsHeaders(req) {
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim());
+  const requestOrigin = req.headers.origin;
+
+  // Check if the request origin is in our allowed list
+  const allowedOrigin = allowedOrigins.includes(requestOrigin)
+    ? requestOrigin
+    : allowedOrigins[0] || "*";
+
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Content-Type, Authorization, X-Requested-With",
+    "Access-Control-Allow-Credentials": "true",
+  };
+}
+
 export default async function handler(req, res) {
-  // Handle CORS preflight
+  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return res
       .status(200)
@@ -37,7 +50,7 @@ export default async function handler(req, res) {
       .end();
   }
 
-  // Set CORS headers
+  // Set CORS headers for all responses
   Object.keys(corsHeaders).forEach((key) => {
     res.setHeader(key, corsHeaders[key]);
   });
