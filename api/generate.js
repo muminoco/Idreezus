@@ -1,9 +1,9 @@
 /* Serverless File */
 
-const { createProvider } = require("../providers");
-const { loadProjectConfig } = require("../config-loader");
-const { formatErrorResponse } = require("../../shared/js-utils");
-const { handleCors } = require("../../shared/cors-utils");
+const { createProvider } = require("./providers");
+const { loadProjectConfig } = require("./config-loader");
+const { formatErrorResponse } = require("../shared/js-utils");
+const { handleCors } = require("../shared/cors-utils");
 
 /**
  * Serverless function for AI generation
