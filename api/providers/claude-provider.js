@@ -13,23 +13,38 @@ class ClaudeProvider extends BaseProvider {
 
   async generateResponse(message) {
     try {
-      // Create the full prompt with system message
-      const fullPrompt = `${this.config.systemPrompt}\n\nUser: ${message}`;
+      // Build the messages array
+      const messages = [
+        {
+          role: "user",
+          content: message,
+        },
+      ];
 
-      // Call Claude API
+      // Add prefill if specified in config
+      if (this.config.prefill) {
+        messages.push({
+          role: "assistant",
+          content: this.config.prefill,
+        });
+      }
+
+      // Call Claude API with proper system prompt format
       const response = await this.client.messages.create({
         model: this.config.model,
-        max_tokens: this.config.parameters.maxTokens,
-        temperature: this.config.parameters.temperature,
-        messages: [
-          {
-            role: "user",
-            content: fullPrompt,
-          },
-        ],
+        max_tokens: this.config.parameters?.maxTokens || 300,
+        temperature: this.config.parameters?.temperature || 0.7,
+        system: this.config.systemPrompt, // Proper Claude system prompt
+        messages: messages,
       });
 
-      return response.content[0].text;
+      // If we used prefill, combine it with the generated response
+      const generatedText = response.content[0].text;
+      const fullResponse = this.config.prefill
+        ? this.config.prefill + generatedText
+        : generatedText;
+
+      return fullResponse;
     } catch (error) {
       console.error("Claude API error:", error);
       throw error;
