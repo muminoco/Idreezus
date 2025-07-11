@@ -37,29 +37,6 @@ function validateInputs() {
   return true;
 }
 
-// Create combined prompt from multiple inputs
-function createPrompt() {
-  const businessName = businessNameInput.value.trim();
-  const services = servicesInput.value.trim();
-
-  return `Create a brutally honest LinkedIn post announcing a price increase for my business:
-
-Business/Professional Name: ${businessName}
-Services/What I Do: ${services}
-
-Requirements:
-- Format as a LinkedIn post (casual but professional tone)
-- Start somewhat diplomatic, then become shockingly direct and feisty
-- Analyze my specific industry deeply and show you "get it" - reference industry pain points, client behavior patterns, and market realities that only an insider would know
-- Make it feel like you read my mind about the frustrations in this field
-- Be bold, slightly shocking, but still professional enough for LinkedIn
-- Include industry-specific justifications that hit different than generic "costs went up"
-- Show confidence and slight fed-up energy without being unprofessional
-- Make other professionals in my field think "FINALLY someone said it"
-
-The post should feel like it was written by someone who truly understands the specific challenges and dynamics of my industry.`;
-}
-
 // API call function
 async function generateAnnouncement() {
   if (!validateInputs()) return;
@@ -70,26 +47,40 @@ async function generateAnnouncement() {
   outputElement.textContent = "Crafting your brutally honest announcement...";
 
   try {
-    const prompt = createPrompt();
+    const businessName = businessNameInput.value.trim();
+    const services = servicesInput.value.trim();
 
+    console.log("Sending request with:", {
+      businessName,
+      services,
+      project: CONFIG.PROJECT_ID,
+    });
+
+    // Send only raw inputs - backend will construct the full prompt
     const response = await fetch(`${API_BASE_URL}/api/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        message: prompt,
+        businessName: businessName,
+        services: services,
         project: CONFIG.PROJECT_ID,
       }),
     });
 
+    console.log("Response status:", response.status);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error response:", errorText);
       throw new Error(
         `API request failed: ${response.status} ${response.statusText}`
       );
     }
 
     const data = await response.json();
+    console.log("Response data:", data);
 
     if (data.error) {
       throw new Error(data.error);
