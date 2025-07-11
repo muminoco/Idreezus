@@ -78,6 +78,15 @@ function setNavbarVariant(navEl, variant) {
 function toggleTransparentNavbar() {
   const { navbarWrapper, navComponent, trigger } = getNavbarElements();
 
+  // Skip transparent toggling if the navbar has the ignore attribute
+  if (
+    navComponent &&
+    navComponent.getAttribute("data-navbar-ignore-transparent-toggle") ===
+      "true"
+  ) {
+    return;
+  }
+
   // If there's no trigger element, always use base variant
   if (!trigger) {
     setNavbarVariant(navComponent, NAVBAR_VARIANTS.base);

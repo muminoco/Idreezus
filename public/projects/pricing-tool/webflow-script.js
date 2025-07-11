@@ -1,172 +1,137 @@
-// Wrap everything in an immediately invoked function expression (IIFE)
-// This prevents our variables from conflicting with other scripts on the page
-(function () {
-  "use strict";
-  console.log("Test");
+// Project configuration
+const CONFIG = {
+  PROJECT_ID: "pricing-tool",
+};
 
-  // Configuration object - all our settings in one place
-  const CONFIG = {
-    API_BASE_URL: (() => {
-      // Get the base URL from where this script was loaded
-      const currentScript = document.currentScript;
-      if (currentScript && currentScript.src) {
-        const scriptUrl = new URL(currentScript.src);
-        const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
-        console.log("🔗 Using API from same domain as script:", baseUrl);
-        return baseUrl;
-      }
+// Determine API base URL based on script origin
+const currentScript = document.currentScript;
+const scriptSrc = currentScript ? currentScript.src : "";
+const isLocalDev = scriptSrc.includes("localhost");
+const API_BASE_URL = isLocalDev
+  ? "https://localhost:3001"
+  : "https://idreezus.vercel.app";
 
-      // Fallback to production if we can't detect
-      console.log("🚀 Fallback to production API");
-      return "https://idreezus.vercel.app";
-    })(),
-    PROJECT_ID: "pricing-tool", // ← This is the ONLY line you change per project!
-    ENDPOINTS: {
-      GENERATE: "/api/generate", // Note: removed 'ai/' from path
-      MODELS: "/api/models",
-      HEALTH: "/api/health",
-    },
-    ELEMENTS: {
-      INPUT: "chat-input", // ID of the input field
-      SUBMIT_BTN: "chat-submit-button", // ID of the submit button
-      OUTPUT: "chat-output", // ID of the output paragraph
-    },
-  };
+// DOM elements
+const businessNameInput = document.getElementById("business-name");
+const servicesInput = document.getElementById("services-input");
+const submitButton = document.getElementById("chat-submit-button");
+const outputElement = document.getElementById("chat-output");
 
-  // Track if we're currently processing a request
-  // This prevents users from sending multiple requests at once
-  let isGenerating = false;
+// Validation function
+function validateInputs() {
+  const businessName = businessNameInput.value.trim();
+  const services = servicesInput.value.trim();
 
-  // Utility functions for updating the UI
-  function showLoading(element) {
-    element.textContent = "Thinking...";
-    element.style.opacity = "0.5";
+  if (!businessName) {
+    alert("Please enter your business name");
+    businessNameInput.focus();
+    return false;
   }
 
-  function showError(element, message) {
-    element.textContent = `Error: ${message}`;
-    element.style.opacity = "1"; // Reset opacity for errors
+  if (!services) {
+    alert("Please describe what services you provide");
+    servicesInput.focus();
+    return false;
   }
 
-  function showSuccess(element, content) {
-    element.textContent = content;
-    element.style.opacity = "1"; // Reset opacity for success
-  }
+  return true;
+}
 
-  /**
-   * Main function that sends the user's message to our API
-   * @param {string} message - The user's input
-   * @returns {Promise} - Promise that resolves with the API response
-   */
-  async function sendMessageToAPI(message) {
-    // Make HTTP request to our API
-    const response = await fetch(
-      `${CONFIG.API_BASE_URL}${CONFIG.ENDPOINTS.GENERATE}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", // Tell server we're sending JSON
-          "X-Requested-With": "XMLHttpRequest", // Helps with CORS
-        },
-        body: JSON.stringify({
-          message: message,
-          project: CONFIG.PROJECT_ID,
-        }),
-      }
-    );
+// Create combined prompt from multiple inputs
+function createPrompt() {
+  const businessName = businessNameInput.value.trim();
+  const services = servicesInput.value.trim();
 
-    // Check if the request was successful
+  return `Create a brutally honest LinkedIn post announcing a price increase for my business:
+
+Business/Professional Name: ${businessName}
+Services/What I Do: ${services}
+
+Requirements:
+- Format as a LinkedIn post (casual but professional tone)
+- Start somewhat diplomatic, then become shockingly direct and feisty
+- Analyze my specific industry deeply and show you "get it" - reference industry pain points, client behavior patterns, and market realities that only an insider would know
+- Make it feel like you read my mind about the frustrations in this field
+- Be bold, slightly shocking, but still professional enough for LinkedIn
+- Include industry-specific justifications that hit different than generic "costs went up"
+- Show confidence and slight fed-up energy without being unprofessional
+- Make other professionals in my field think "FINALLY someone said it"
+
+The post should feel like it was written by someone who truly understands the specific challenges and dynamics of my industry.`;
+}
+
+// API call function
+async function generateAnnouncement() {
+  if (!validateInputs()) return;
+
+  // Update UI state
+  submitButton.disabled = true;
+  submitButton.textContent = "Generating...";
+  outputElement.textContent = "Crafting your brutally honest announcement...";
+
+  try {
+    const prompt = createPrompt();
+
+    const response = await fetch(`${API_BASE_URL}/api/generate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: prompt,
+        project: CONFIG.PROJECT_ID,
+      }),
+    });
+
     if (!response.ok) {
-      const errorData = await response.json();
       throw new Error(
-        errorData.error || `HTTP error! status: ${response.status}`
+        `API request failed: ${response.status} ${response.statusText}`
       );
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    // Display the generated announcement - backend returns data.data.message
+    const aiResponse =
+      data.data?.message || data.response || "No response received";
+    outputElement.innerHTML = aiResponse.replace(/\n/g, "<br>");
+  } catch (error) {
+    console.error("Error generating announcement:", error);
+    outputElement.textContent = `Error: ${error.message}. Please try again.`;
+  } finally {
+    // Reset button state
+    submitButton.disabled = false;
+    submitButton.textContent = "Generate My Announcement";
   }
+}
 
-  /**
-   * Main event handler - called when user clicks submit button
-   */
-  async function handleSubmit() {
-    // Don't do anything if we're already processing a request
-    if (isGenerating) return;
+// Event listeners
+document.addEventListener("DOMContentLoaded", function () {
+  // Submit button click handler
+  submitButton.addEventListener("click", generateAnnouncement);
 
-    // Get references to our HTML elements
-    const inputElement = document.getElementById(CONFIG.ELEMENTS.INPUT);
-    const outputElement = document.getElementById(CONFIG.ELEMENTS.OUTPUT);
-
-    // Make sure we found the elements
-    if (!inputElement || !outputElement) {
-      console.error("Required elements not found");
-      return;
+  // Enter key handlers for inputs
+  businessNameInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+      servicesInput.focus();
     }
+  });
 
-    // Get the user's message and validate it
-    const userMessage = inputElement.value.trim();
-    if (!userMessage) {
-      showError(outputElement, "Please enter a message");
-      return;
+  servicesInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+      generateAnnouncement();
     }
+  });
 
-    try {
-      // Set loading state
-      isGenerating = true;
-      showLoading(outputElement);
+  // Optional: Clear output only on explicit button click, not when typing
+  // Removed auto-clear functionality to keep previous results visible
+});
 
-      console.log("Sending message:", userMessage); // Debug log
-
-      // Send message to our API
-      const result = await sendMessageToAPI(userMessage);
-
-      // Handle the response
-      if (result.success) {
-        console.log("Received response from API:", result.data.message); // Debug log
-        showSuccess(outputElement, result.data.message);
-        inputElement.value = ""; // Clear the input field
-      } else {
-        showError(outputElement, result.error || "Unknown error occurred");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      showError(outputElement, error.message || "Failed to get response");
-    } finally {
-      // Always reset the loading state
-      isGenerating = false;
-    }
-  }
-
-  /**
-   * Initialize the script when the page loads
-   */
-  function init() {
-    // Find the submit button and add click event listener
-    const submitButton = document.getElementById(CONFIG.ELEMENTS.SUBMIT_BTN);
-
-    if (submitButton) {
-      submitButton.addEventListener("click", handleSubmit);
-      console.log("Chat interface initialized"); // Debug log
-    } else {
-      console.error("Submit button not found");
-    }
-
-    // Optional: Allow Enter key to submit (like in ChatGPT)
-    const inputElement = document.getElementById(CONFIG.ELEMENTS.INPUT);
-    if (inputElement) {
-      inputElement.addEventListener("keypress", function (e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          handleSubmit();
-        }
-      });
-    }
-  }
-
-  // Start initialization when DOM is ready
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
-})();
+// Initialize
+console.log("Price Increase Announcement Generator loaded");
+console.log("API Base URL:", API_BASE_URL);
+console.log("Project ID:", CONFIG.PROJECT_ID);
