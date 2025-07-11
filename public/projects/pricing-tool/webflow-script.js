@@ -2,6 +2,7 @@
 // This prevents our variables from conflicting with other scripts on the page
 (function () {
   "use strict";
+  console.log("Test");
 
   // Configuration object - all our settings in one place
   const CONFIG = {
