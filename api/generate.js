@@ -1,28 +1,20 @@
-/* Serverless File */
-
+// Import dependencies
 const { createProvider } = require("./providers");
 const { loadProjectConfig } = require("./config-loader");
-const { formatErrorResponse } = require("../shared/js-utils");
-const { handleCors } = require("../shared/cors-utils");
+const {
+  validateChatInput,
+  validateFormData,
+  formatErrorResponse,
+} = require("../shared/js-utils");
+const { handleCors } = require("../shared/cors-utils"); // Import shared CORS utility
 
 /**
  * Serverless function for AI generation
- * Now handles raw inputs and builds prompts server-side
+ * This replaces the Express route handler
  */
 export default async function handler(req, res) {
-  // Add this at the very top of your handler function, before anything else:
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://idreezusstaging.webflow.io"
-  );
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    res.status(200).end();
-    return;
-  }
-  // Handle CORS setup and preflight
+  // Handle CORS setup and preflight - returns true if this was just a preflight check
+  // Unlike Express apps, serverless functions need manual CORS handling per request
   if (handleCors(req, res)) return;
 
   try {
@@ -31,8 +23,8 @@ export default async function handler(req, res) {
       return res.status(405).json(formatErrorResponse("Method not allowed"));
     }
 
-    // Extract request data - now expects raw inputs instead of pre-built message
-    const { businessName, services, project: projectId, message } = req.body;
+    // Extract request data
+    const { message, project: projectId, formData } = req.body;
 
     // Validate required fields
     if (!projectId) {
@@ -45,45 +37,56 @@ export default async function handler(req, res) {
         );
     }
 
-    // Support both old format (message) and new format (businessName, services)
-    let userInputs;
-    if (message) {
-      // Old format - for backward compatibility
-      userInputs = { message };
+    // Handle different input formats
+    let validation;
+    let finalMessage;
+
+    if (formData) {
+      // New multi-input form format
+      validation = validateFormData(formData, ["businessName", "services"]);
+      if (!validation.isValid) {
+        return res
+          .status(400)
+          .json(formatErrorResponse("Invalid form data", validation.errors));
+      }
+
+      // Construct the message from form data
+      finalMessage = `Generate a "My Price Went Up" announcement email for a business.
+
+Business Name: ${formData.businessName}
+Services: ${formData.services}
+
+Requirements:
+1. Start diplomatic but become refreshingly direct
+2. Brag on their behalf about their skills and value
+3. Justify the price increase with confidence
+4. Sound human, bold, and slightly fed-up
+5. Include a clear effective date
+6. Keep it professional but with personality
+7. End with a confident call to action
+
+Example tone: "We're implementing new pricing effective [date]... Let's cut to the chase. Everything costs more now. Your coffee, your rent, our talent. We haven't raised rates in 2 years while our skills improved and your demands increased. Pay the new rate or find someone cheaper who will inevitably disappoint you."`;
+    } else if (message) {
+      // Legacy single message format
+      validation = validateChatInput(message);
+      if (!validation.isValid) {
+        return res
+          .status(400)
+          .json(formatErrorResponse("Invalid input", validation.errors));
+      }
+      finalMessage = message;
     } else {
-      // New format - raw inputs
-      if (!businessName || !services) {
-        return res
-          .status(400)
-          .json(
-            formatErrorResponse("Business name and services are required", [
-              "Please provide both business name and services description",
-            ])
-          );
-      }
-
-      // Validate inputs
-      if (businessName.trim().length === 0 || services.trim().length === 0) {
-        return res
-          .status(400)
-          .json(
-            formatErrorResponse("Invalid input", [
-              "Business name and services cannot be empty",
-            ])
-          );
-      }
-
-      userInputs = {
-        businessName: businessName.trim(),
-        services: services.trim(),
-      };
+      return res
+        .status(400)
+        .json(
+          formatErrorResponse("No input provided", [
+            "Please provide either a message or form data",
+          ])
+        );
     }
 
     console.log(
-      `Processing request for project: ${projectId}`,
-      userInputs.message
-        ? "with pre-built message"
-        : `for business: ${userInputs.businessName}`
+      `Processing request for project: ${projectId}, has form data: ${!!formData}`
     );
 
     // Load project configuration
@@ -98,34 +101,6 @@ export default async function handler(req, res) {
             configError.message,
           ])
         );
-    }
-
-    // Build the prompt using the project's buildPrompt function
-    let finalMessage;
-    if (userInputs.message) {
-      // Old format - use message as-is
-      finalMessage = userInputs.message;
-    } else {
-      // New format - build prompt from raw inputs
-      if (typeof projectConfig.ai.buildPrompt !== "function") {
-        return res
-          .status(500)
-          .json(
-            formatErrorResponse("Project configuration error", [
-              "buildPrompt function not found in project config",
-            ])
-          );
-      }
-
-      try {
-        finalMessage = projectConfig.ai.buildPrompt(userInputs);
-      } catch (promptError) {
-        return res
-          .status(500)
-          .json(
-            formatErrorResponse("Failed to build prompt", [promptError.message])
-          );
-      }
     }
 
     // Create AI provider based on project config
