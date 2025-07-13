@@ -4,8 +4,8 @@ const { AI_PROVIDERS, AI_MODELS } = require("../../../shared/constants");
 // AI-specific configuration for the pricing tool project
 module.exports = {
   // Use constants instead of hardcoded strings
-  provider: AI_PROVIDERS.ANTHROPIC,
-  model: AI_MODELS.ANTHROPIC.CLAUDE_35_HAIKU,
+  provider: AI_PROVIDERS.OPENAI,
+  model: AI_MODELS.OPENAI.GPT_4_1_MINI,
 
   // System prompt for "My Price Went Up" announcement generator
   systemPrompt: `Mimic the EXACT style of these examples but for the given business:
