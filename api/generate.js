@@ -51,21 +51,12 @@ export default async function handler(req, res) {
       }
 
       // Construct the message from form data
-      finalMessage = `Generate a "My Price Went Up" announcement email for a business.
-
-Business Name: ${formData.businessName}
+      finalMessage = `Business Name: ${formData.businessName}
 Services: ${formData.services}
 
-Requirements:
-1. Start diplomatic but become refreshingly direct
-2. Brag on their behalf about their skills and value
-3. Justify the price increase with confidence
-4. Sound human, bold, and slightly fed-up
-5. Include a clear effective date
-6. Keep it professional but with personality
-7. End with a confident call to action
+Create a price increase announcement following the 4-part structure and style of the examples. Focus on what clients in this industry misunderstand and undervalue.
 
-Example tone: "We're implementing new pricing effective [date]... Let's cut to the chase. Everything costs more now. Your coffee, your rent, our talent. We haven't raised rates in 2 years while our skills improved and your demands increased. Pay the new rate or find someone cheaper who will inevitably disappoint you."`;
+Output only the complete announcement - no analysis or explanation.`;
     } else if (message) {
       // Legacy single message format
       validation = validateChatInput(message);
