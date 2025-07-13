@@ -7,7 +7,7 @@ module.exports = {
   provider: AI_PROVIDERS.ANTHROPIC,
   model: AI_MODELS.ANTHROPIC.CLAUDE_35_HAIKU,
 
-  // System prompt specific to this project - "My Price Went Up" announcement generator
+  // System prompt for "My Price Went Up" announcement generator
   systemPrompt: `Mimic the EXACT style of these examples but for the given business:
 
 EXAMPLES OF PROPER EXECUTION:
