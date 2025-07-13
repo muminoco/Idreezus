@@ -37,11 +37,12 @@
       BUSINESS_NAME_CTA: "business-name-cta", // ID of the CTA business name text block
     },
     LOADING_TEXTS: [
-      "Crafting your announcement...",
-      "Channeling your inner sass...",
-      "Preparing your confidence boost...",
-      "Brewing the perfect blend of diplomacy and directness...",
-      "Polishing your professional edge...",
+      "Calculating pettiness...",
+      "Recognizing your worth...",
+      "Processing bullshit you've endured...",
+      "Measuring your tolerance...",
+      "Defending your craftsmanship...",
+      "Demanding proper respect...",
     ],
     ANIMATION_DURATION: 0.5, // Duration for main animations
     TEXT_ROTATION_DURATION: 2000, // Duration between text rotations (in ms)
