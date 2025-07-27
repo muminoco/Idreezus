@@ -15,7 +15,9 @@ const PORT = process.env.PORT || 3000;
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(",") || [
     "https://idreezus.com",
+    "https://www.idreezus.com",
     "https://idreezusstaging.webflow.io",
+    "https://www.idreezusstaging.webflow.io",
   ],
   credentials: true, // Allow cookies if needed
   methods: ["GET", "POST", "OPTIONS"], // Which HTTP methods are allowed
