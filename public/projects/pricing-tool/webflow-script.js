@@ -29,7 +29,7 @@
       BUSINESS_NAME: "business-name", // ID of the business name input field
       SERVICES_INPUT: "services-input", // ID of the services input field
       SUBMIT_BTN: "chat-submit-button", // ID of the submit button
-      OUTPUT: "chat-output", // ID of the output paragraph
+      OUTPUT_WRAPPER: "pr_1_output-content", // ID of the output wrapper div (moved from chat-output)
       FORM_CARD: "form-card", // ID of the form container
       LOADING: "loading", // ID of the loading div
       LOADING_TEXT: "loading-text", // ID of the loading text element
@@ -177,28 +177,92 @@
     }
   }
 
-  // Utility functions for updating the UI (kept for backward compatibility)
-  function showLoading(element) {
-    element.textContent = "Crafting your announcement...";
-    element.style.opacity = "0.5";
+  /**
+   * Splits API response into paragraphs and creates DOM elements
+   * @param {string} content - The API response content
+   * @returns {Array} - Array of paragraph elements
+   */
+  function createParagraphElements(content) {
+    // Split on double line breaks to separate paragraphs
+    const paragraphs = content
+      .split(/\n\n+/) // Split on two or more consecutive line breaks
+      .map((p) => p.trim()) // Remove leading/trailing whitespace
+      .filter((p) => p.length > 0); // Remove empty paragraphs
+
+    // Create paragraph elements
+    return paragraphs.map((paragraphText) => {
+      const p = document.createElement("p");
+      p.className = "pr_1_output-text";
+      p.textContent = paragraphText;
+      return p;
+    });
   }
 
-  function showError(element, message) {
-    element.textContent = `Error: ${message}`;
-    element.style.opacity = "1"; // Reset opacity for errors
+  /**
+   * Updates the output wrapper with new content
+   * @param {string} content - The content to display
+   * @param {boolean} isError - Whether this is an error message
+   */
+  function updateOutputContent(content, isError = false) {
+    const outputWrapper = document.getElementById(
+      CONFIG.ELEMENTS.OUTPUT_WRAPPER
+    );
+    if (!outputWrapper) return;
+
+    // Clear existing content
+    outputWrapper.innerHTML = "";
+
+    if (isError) {
+      // For errors, create a single paragraph with error styling
+      const errorP = document.createElement("p");
+      errorP.className = "pr_1_output-text";
+      errorP.textContent = `Error: ${content}`;
+      errorP.style.opacity = "1";
+      outputWrapper.appendChild(errorP);
+    } else {
+      // For success, create multiple paragraphs
+      const paragraphElements = createParagraphElements(content);
+
+      // If no paragraphs were created (shouldn't happen), create one with the full content
+      if (paragraphElements.length === 0) {
+        const fallbackP = document.createElement("p");
+        fallbackP.className = "pr_1_output-text";
+        fallbackP.textContent = content;
+        paragraphElements.push(fallbackP);
+      }
+
+      // Append all paragraphs to the wrapper
+      paragraphElements.forEach((p) => {
+        p.style.opacity = "1";
+        outputWrapper.appendChild(p);
+      });
+    }
   }
 
-  function showSuccess(element, content) {
-    element.textContent = content;
-    element.style.opacity = "1"; // Reset opacity for success
+  // Utility functions for updating the UI (updated for new structure)
+  function showLoading(wrapper) {
+    updateOutputContent("Crafting your announcement...");
+    wrapper.style.opacity = "0.5";
+  }
+
+  function showError(wrapper, message) {
+    updateOutputContent(message, true);
+    wrapper.style.opacity = "1";
+  }
+
+  function showSuccess(wrapper, content) {
+    updateOutputContent(content);
+    wrapper.style.opacity = "1";
   }
 
   function showErrorInResults(message) {
     const resultsDiv = document.getElementById(CONFIG.ELEMENTS.RESULTS);
-    const outputElement = document.getElementById(CONFIG.ELEMENTS.OUTPUT);
+    const outputWrapper = document.getElementById(
+      CONFIG.ELEMENTS.OUTPUT_WRAPPER
+    );
 
-    if (outputElement) {
-      showError(outputElement, message);
+    if (outputWrapper) {
+      showError(outputWrapper, message);
     }
 
     if (resultsDiv) {
@@ -214,13 +278,15 @@
 
   function showSuccessInResults(content, businessName) {
     const resultsDiv = document.getElementById(CONFIG.ELEMENTS.RESULTS);
-    const outputElement = document.getElementById(CONFIG.ELEMENTS.OUTPUT);
+    const outputWrapper = document.getElementById(
+      CONFIG.ELEMENTS.OUTPUT_WRAPPER
+    );
     const businessNameCTA = document.getElementById(
       CONFIG.ELEMENTS.BUSINESS_NAME_CTA
     );
 
-    if (outputElement) {
-      showSuccess(outputElement, content);
+    if (outputWrapper) {
+      showSuccess(outputWrapper, content);
     }
 
     // Update the CTA with the business name
@@ -345,9 +411,11 @@ Output only the complete announcement - no analysis or explanation.`;
     // Collect and validate form data first
     const formResult = collectFormData();
     if (!formResult.isValid) {
-      const outputElement = document.getElementById(CONFIG.ELEMENTS.OUTPUT);
-      if (outputElement) {
-        showError(outputElement, formResult.error);
+      const outputWrapper = document.getElementById(
+        CONFIG.ELEMENTS.OUTPUT_WRAPPER
+      );
+      if (outputWrapper) {
+        showError(outputWrapper, formResult.error);
       }
       return;
     }
@@ -426,6 +494,9 @@ Output only the complete announcement - no analysis or explanation.`;
     const businessNameCTA = document.getElementById(
       CONFIG.ELEMENTS.BUSINESS_NAME_CTA
     );
+    const outputWrapper = document.getElementById(
+      CONFIG.ELEMENTS.OUTPUT_WRAPPER
+    );
 
     if (formCard) {
       gsap.set(formCard, { display: "block", opacity: 1, y: 0 });
@@ -435,6 +506,11 @@ Output only the complete announcement - no analysis or explanation.`;
     }
     if (resultsDiv) {
       gsap.set(resultsDiv, { display: "none", opacity: 0, y: 30 });
+    }
+
+    // Clear output content
+    if (outputWrapper) {
+      outputWrapper.innerHTML = "";
     }
 
     // Reset CTA text to default
