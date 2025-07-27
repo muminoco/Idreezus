@@ -204,32 +204,38 @@
   }
 
   /**
-   * Animates a counter from 0 to target value with slot machine effect
+   * Animates a counter from 0 to target value with GSAP and easing
    */
-  function animateCounter(element, targetValue, duration = 2000) {
+  function animateCounter(element, targetValue, duration = 1500) {
     if (!element) return Promise.resolve();
 
     return new Promise((resolve) => {
-      const startValue = 0;
-      const increment = targetValue / (duration / 16); // ~60fps
-      let currentValue = startValue;
+      // Create an object to animate
+      const counterObj = { value: 0 };
 
-      const counter = setInterval(() => {
-        currentValue += increment;
+      // Use GSAP to animate the counter object
+      gsap.to(counterObj, {
+        value: targetValue,
+        duration: duration / 1000, // Convert to seconds for GSAP
+        ease: "expo.out",
+        onUpdate: () => {
+          // Add some randomness for slot machine effect, but less as we get closer to target
+          const progress = counterObj.value / targetValue;
+          const randomnessFactor = Math.max(0.1, 1 - progress); // Less randomness as we approach target
+          const randomOffset =
+            Math.random() * targetValue * 0.02 * randomnessFactor; // 2% max random offset
 
-        if (currentValue >= targetValue) {
-          currentValue = targetValue;
-          clearInterval(counter);
-          element.textContent = formatNumber(Math.floor(currentValue));
-          resolve();
-        } else {
-          // Add some randomness to make it look more like a slot machine
           const displayValue = Math.floor(
-            currentValue + Math.random() * increment
+            Math.max(0, counterObj.value + randomOffset)
           );
           element.textContent = formatNumber(displayValue);
-        }
-      }, 16); // ~60fps
+        },
+        onComplete: () => {
+          // Ensure final value is exactly correct
+          element.textContent = formatNumber(targetValue);
+          resolve();
+        },
+      });
     });
   }
 
@@ -254,9 +260,10 @@
     // Create ScrollTrigger
     ScrollTrigger.create({
       trigger: interactionsWrapper,
-      start: "top 90%",
+      start: "top 80%", // When top of element hits 80% of viewport
       once: true, // Only trigger once
       onEnter: () => {
+        console.log("ScrollTrigger fired - starting social animations");
         animateSocialInteractions();
       },
     });
@@ -308,7 +315,7 @@
 
       // Fade in the wrapper with power4.out ease
       gsap.to(interactionsWrapper, {
-        duration: 1.5,
+        duration: 0.5,
         opacity: 1,
         ease: "power4.out",
         onComplete: () => {
