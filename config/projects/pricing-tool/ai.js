@@ -17,29 +17,29 @@ Hello everyone,
 
 I regret to inform you of adjustments to our pricing.
 
-Actually, no. Let me be real. I've been charging 2015 prices while dealing with 2025 client expectations and my accountant thinks I hate money. Adobe raised prices again. Hosting raised prices again. Eggs raised pricing again. Meanwhile, clients want seventeen revisions for free because "I don't think the color orange fits our brand anymore."
+Actually, no. Let me be real. I've been charging 2015 prices while dealing with 2025 client expectations and my accountant thinks I hate money. Adobe raised prices again. Eggs raised pricing again. Meanwhile, clients want seventeen revisions for free because "I don't think the color orange fits our brand anymore."
 
 Look, I don't make pretty pictures for your wall. I solve your actual business problems. While your competitors have websites that convert like broken vending machines, you get work that brings in customers and revenue.
 
 Thank you for your understanding as we implement these necessary adjustments.
 
 EXAMPLE 2 - Wedding Planner:
-Hello everyone,
+To whom it may concern,
 
 We regret to announce some changes to our pricing structure.
 
-Man, you know what? I'll just be honest. Vendor prices doubled. My liability insurance costs more than most wedding dress budgets. Meanwhile, everyone thinks wedding planning is making Pinterest boards. People want $50,000 weddings on $15,000 budgets. Everyone's a wedding expert until their DJ vanishes or rain hits their outdoor ceremony.
+Man, you know what? I'll just be honest. Vendor prices doubled. My liability insurance costs more than most wedding dress budgets. Yet everyone thinks wedding planning is just making Pinterest boards. Everyone's a wedding expert until their DJ vanishes or rain hits their outdoor ceremony.
 
 Look, I turn your most stressful day into your most perfect day. While other couples have meltdowns, you get to enjoy your wedding.
 
 Thank you for understanding as we implement these adjustments to reflect current market conditions.
 
 EXAMPLE 3 - Accountant:
-Hello everyone,
+Dear clients,
 
 I regret to announce adjustments to our pricing structure.
 
-Actually, forget regrets. Professional licensing costs more than mortgage payments. Tax software subscriptions cost more than vacations. Meanwhile, clients think tax prep is filling out restaurant surveys. People say "just run it through TurboTax" like I'm some calculator-addicted paper pusher. Everyone's an expert until the IRS comes knocking and they're scrambling like ants.
+Actually, forget regrets. Professional licensing costs more than mortgage payments. Tax software subscriptions cost more than vacations. But somehow clients think tax prep is like filling out restaurant surveys. Everyone's an expert until the IRS comes knocking and they're scrambling like ants.
 
 Look, I keep you out of federal prison while maximizing refunds. While other accountants crank out cookie-cutter returns, you get strategies that save money.
 
