@@ -254,10 +254,9 @@
     // Create ScrollTrigger
     ScrollTrigger.create({
       trigger: interactionsWrapper,
-      start: "top 80%", // When top of element hits 80% of viewport
+      start: "top 90%",
       once: true, // Only trigger once
       onEnter: () => {
-        console.log("ScrollTrigger fired - starting social animations");
         animateSocialInteractions();
       },
     });
@@ -309,7 +308,7 @@
 
       // Fade in the wrapper with power4.out ease
       gsap.to(interactionsWrapper, {
-        duration: 0.5,
+        duration: 1.5,
         opacity: 1,
         ease: "power4.out",
         onComplete: () => {
