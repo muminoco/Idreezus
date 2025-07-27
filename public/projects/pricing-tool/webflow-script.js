@@ -42,14 +42,15 @@
     },
     LOADING_TEXTS: [
       "Calculating pettiness...",
-      "Recognizing your worth...",
       "Processing bullshit you've endured...",
+      "Recognizing your worth...",
       "Measuring your tolerance...",
       "Defending your craftsmanship...",
       "Demanding proper respect...",
     ],
     ANIMATION_DURATION: 0.5, // Duration for main animations
     TEXT_ROTATION_DURATION: 2000, // Duration between text rotations (in ms)
+    MINIMUM_LOADING_DURATION: 5500, // Minimum loading time in milliseconds
     SOCIAL_ANIMATION: {
       DURATION: 2000,
       RANGES: {
@@ -65,6 +66,7 @@
   let isGenerating = false;
   let loadingTextInterval = null;
   let currentLoadingTextIndex = 0;
+  let loadingStartTime = null;
 
   // Animation helper functions
   function smoothScrollToTop() {
@@ -157,6 +159,9 @@
     loadingTextElement.textContent =
       CONFIG.LOADING_TEXTS[currentLoadingTextIndex];
 
+    // Record the start time for minimum loading duration
+    loadingStartTime = Date.now();
+
     // Start the rotation
     loadingTextInterval = setInterval(() => {
       currentLoadingTextIndex =
@@ -190,6 +195,22 @@
   }
 
   /**
+   * Ensures minimum loading duration has passed before resolving
+   */
+  function waitForMinimumLoadingDuration() {
+    if (!loadingStartTime) return Promise.resolve();
+
+    const elapsed = Date.now() - loadingStartTime;
+    const remaining = CONFIG.MINIMUM_LOADING_DURATION - elapsed;
+
+    if (remaining > 0) {
+      return new Promise((resolve) => setTimeout(resolve, remaining));
+    }
+
+    return Promise.resolve();
+  }
+
+  /**
    * Generates a random integer between min and max (inclusive)
    */
   function getRandomInt(min, max) {
@@ -204,7 +225,7 @@
   }
 
   /**
-   * Animates a counter from 0 to target value with GSAP and power4.out easing
+   * Animates a counter from 0 to target value with GSAP and power4.out easing (linear counting only)
    */
   function animateCounter(
     element,
@@ -223,15 +244,8 @@
         duration: duration / 1000, // Convert to seconds for GSAP
         ease: "power4.out",
         onUpdate: () => {
-          // Add some randomness for slot machine effect, but less as we get closer to target
-          const progress = counterObj.value / targetValue;
-          const randomnessFactor = Math.max(0.1, 1 - progress); // Less randomness as we approach target
-          const randomOffset =
-            Math.random() * targetValue * 0.02 * randomnessFactor; // 2% max random offset
-
-          const displayValue = Math.floor(
-            Math.max(0, counterObj.value + randomOffset)
-          );
+          // Display the current value with linear counting
+          const displayValue = Math.floor(counterObj.value);
           element.textContent = formatNumber(displayValue);
         },
         onComplete: () => {
@@ -664,18 +678,22 @@ Output only the complete announcement - no analysis or explanation.`;
       startLoadingTextRotation();
 
       // 3. Send form data to our API (this happens while loading animation is running)
-      const result = await sendFormDataToAPI(formResult.data);
+      const apiPromise = sendFormDataToAPI(formResult.data);
 
-      // 4. Stop loading text rotation
+      // 4. Wait for both API response AND minimum loading duration
+      const result = await apiPromise;
+      await waitForMinimumLoadingDuration();
+
+      // 5. Stop loading text rotation
       stopLoadingTextRotation();
 
-      // 5. Animate loading out
+      // 6. Animate loading out
       await animateLoadingOut();
 
-      // 6. Scroll to top again before showing results
+      // 7. Scroll to top again before showing results
       await smoothScrollToTop();
 
-      // 7. Handle the response and show results
+      // 8. Handle the response and show results
       if (result.success) {
         // console.log("Received response from API:", result.data.message); // Debug log
         showSuccessInResults(result.data.message, formResult.data.businessName);
@@ -695,7 +713,7 @@ Output only the complete announcement - no analysis or explanation.`;
     } catch (error) {
       console.error("Error:", error);
 
-      // Stop loading animation and show error
+      // Stop loading animation and show error immediately (no minimum duration for errors)
       stopLoadingTextRotation();
       await animateLoadingOut();
 
@@ -705,6 +723,7 @@ Output only the complete announcement - no analysis or explanation.`;
     } finally {
       // Always reset the loading state
       isGenerating = false;
+      loadingStartTime = null;
     }
   }
 
@@ -751,6 +770,7 @@ Output only the complete announcement - no analysis or explanation.`;
 
     // Reset loading state
     isGenerating = false;
+    loadingStartTime = null;
   }
 
   /**
