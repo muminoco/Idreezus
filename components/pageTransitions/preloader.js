@@ -76,7 +76,7 @@ export function initPreloader() {
 
   // Check if preloader exists on the page
   if (!preloader) {
-    console.log("Preloader not found on page, skipping initialization");
+    console.warn("Preloader not found on page, skipping initialization");
     return;
   }
 

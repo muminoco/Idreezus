@@ -11,12 +11,12 @@
       if (currentScript && currentScript.src) {
         const scriptUrl = new URL(currentScript.src);
         const baseUrl = `${scriptUrl.protocol}//${scriptUrl.host}`;
-        console.log("🔗 Using API from same domain as script:", baseUrl);
+        // console.log("🔗 Using API from same domain as script:", baseUrl);
         return baseUrl;
       }
 
       // Fallback to production if we can't detect
-      console.log("🚀 Fallback to production API");
+      console.log("Fallback to production API");
       return "https://idreezus.vercel.app";
     })(),
     PROJECT_ID: "pricing-tool", // ← This is the ONLY line you change per project!
@@ -267,7 +267,7 @@
       start: "top 90%", // When top of element hits 80% of viewport
       once: true, // Only trigger once
       onEnter: () => {
-        console.log("ScrollTrigger fired - starting social animations");
+        // console.log("ScrollTrigger fired - starting social animations");
         animateSocialInteractions();
       },
     });
@@ -315,7 +315,7 @@
         ),
       };
 
-      console.log("Starting social animations with targets:", targets);
+      // console.log("Starting social animations with targets:", targets);
 
       // Fade in the wrapper with power4.out ease
       gsap.to(interactionsWrapper, {
@@ -358,7 +358,7 @@
 
           // Wait for all animations to complete
           Promise.all(animations).then(() => {
-            console.log("All social animations completed");
+            // console.log("All social animations completed");
             resolve();
           });
         },
@@ -652,7 +652,7 @@ Output only the complete announcement - no analysis or explanation.`;
       // Set loading state
       isGenerating = true;
 
-      console.log("Sending form data:", formResult.data); // Debug log
+      // console.log("Sending form data:", formResult.data); // Debug log
 
       // Start the animation sequence
       // 1. Scroll to top first, then animate form out
@@ -677,7 +677,7 @@ Output only the complete announcement - no analysis or explanation.`;
 
       // 7. Handle the response and show results
       if (result.success) {
-        console.log("Received response from API:", result.data.message); // Debug log
+        // console.log("Received response from API:", result.data.message); // Debug log
         showSuccessInResults(result.data.message, formResult.data.businessName);
 
         // Clear the form inputs for next use
@@ -765,7 +765,7 @@ Output only the complete announcement - no analysis or explanation.`;
 
     if (submitButton) {
       submitButton.addEventListener("click", handleSubmit);
-      console.log("Price announcement generator initialized"); // Debug log
+      // console.log("Price announcement generator initialized"); // Debug log
     } else {
       console.error("Submit button not found");
     }
