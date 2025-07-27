@@ -29,7 +29,7 @@
       BUSINESS_NAME: "business-name", // ID of the business name input field
       SERVICES_INPUT: "services-input", // ID of the services input field
       SUBMIT_BTN: "chat-submit-button", // ID of the submit button
-      OUTPUT_WRAPPER: "pr_1_output-content", // ID of the output wrapper div (moved from chat-output)
+      OUTPUT_WRAPPER: "output-wrapper", // ID of the output wrapper div (moved from chat-output)
       FORM_CARD: "form-card", // ID of the form container
       LOADING: "loading", // ID of the loading div
       LOADING_TEXT: "loading-text", // ID of the loading text element
