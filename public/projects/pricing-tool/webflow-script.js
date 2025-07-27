@@ -51,8 +51,7 @@
     ANIMATION_DURATION: 0.5, // Duration for main animations
     TEXT_ROTATION_DURATION: 2000, // Duration between text rotations (in ms)
     SOCIAL_ANIMATION: {
-      DELAY: 1000, // 1 second delay before starting social animations
-      DURATION: 2000, // 2 seconds for the counting animation
+      DURATION: 1500, // 1.5 seconds for the counting animation
       RANGES: {
         INTERACTIONS: { min: 25000, max: 99000 },
         COMMENTS: { min: 1000, max: 9999 },
@@ -235,6 +234,36 @@
   }
 
   /**
+   * Sets up ScrollTrigger animation for social media interactions
+   */
+  function setupSocialScrollTrigger() {
+    const interactionsWrapper = document.getElementById(
+      CONFIG.ELEMENTS.INTERACTIONS_WRAPPER
+    );
+
+    if (!interactionsWrapper) {
+      console.warn(
+        "Interactions wrapper not found, skipping ScrollTrigger setup"
+      );
+      return;
+    }
+
+    // Set initial state - hidden
+    gsap.set(interactionsWrapper, { opacity: 0 });
+
+    // Create ScrollTrigger
+    ScrollTrigger.create({
+      trigger: interactionsWrapper,
+      start: "top 80%", // When top of element hits 80% of viewport
+      once: true, // Only trigger once
+      onEnter: () => {
+        console.log("ScrollTrigger fired - starting social animations");
+        animateSocialInteractions();
+      },
+    });
+  }
+
+  /**
    * Starts the social media interactions animation sequence
    */
   function animateSocialInteractions() {
@@ -260,9 +289,6 @@
         return;
       }
 
-      // Set initial state - hidden
-      gsap.set(interactionsWrapper, { opacity: 0 });
-
       // Generate random target values
       const targets = {
         interactions: getRandomInt(
@@ -281,60 +307,57 @@
 
       console.log("Starting social animations with targets:", targets);
 
-      // After delay, fade in the wrapper and start counting animations
-      setTimeout(() => {
-        // Fade in the wrapper
-        gsap.to(interactionsWrapper, {
-          duration: 0.5,
-          opacity: 1,
-          ease: "power2.inOut",
-          onComplete: () => {
-            // Start all counter animations simultaneously
-            const animations = [];
+      // Fade in the wrapper with power4.out ease
+      gsap.to(interactionsWrapper, {
+        duration: 0.5,
+        opacity: 1,
+        ease: "power4.out",
+        onComplete: () => {
+          // Start all counter animations simultaneously
+          const animations = [];
 
-            if (interactionsCount) {
-              animations.push(
-                animateCounter(
-                  interactionsCount,
-                  targets.interactions,
-                  CONFIG.SOCIAL_ANIMATION.DURATION
-                )
-              );
-            }
+          if (interactionsCount) {
+            animations.push(
+              animateCounter(
+                interactionsCount,
+                targets.interactions,
+                CONFIG.SOCIAL_ANIMATION.DURATION
+              )
+            );
+          }
 
-            if (commentsCount) {
-              animations.push(
-                animateCounter(
-                  commentsCount,
-                  targets.comments,
-                  CONFIG.SOCIAL_ANIMATION.DURATION
-                )
-              );
-            }
+          if (commentsCount) {
+            animations.push(
+              animateCounter(
+                commentsCount,
+                targets.comments,
+                CONFIG.SOCIAL_ANIMATION.DURATION
+              )
+            );
+          }
 
-            if (repostsCount) {
-              animations.push(
-                animateCounter(
-                  repostsCount,
-                  targets.reposts,
-                  CONFIG.SOCIAL_ANIMATION.DURATION
-                )
-              );
-            }
+          if (repostsCount) {
+            animations.push(
+              animateCounter(
+                repostsCount,
+                targets.reposts,
+                CONFIG.SOCIAL_ANIMATION.DURATION
+              )
+            );
+          }
 
-            // Wait for all animations to complete
-            Promise.all(animations).then(() => {
-              console.log("All social animations completed");
-              resolve();
-            });
-          },
-        });
-      }, CONFIG.SOCIAL_ANIMATION.DELAY);
+          // Wait for all animations to complete
+          Promise.all(animations).then(() => {
+            console.log("All social animations completed");
+            resolve();
+          });
+        },
+      });
     });
   }
 
   /**
-   * Resets social media counters to initial state
+   * Resets social media counters and ScrollTrigger
    */
   function resetSocialInteractions() {
     const interactionsWrapper = document.getElementById(
@@ -356,6 +379,16 @@
     if (interactionsCount) interactionsCount.textContent = "0";
     if (commentsCount) commentsCount.textContent = "0";
     if (repostsCount) repostsCount.textContent = "0";
+
+    // Kill any existing ScrollTriggers to prevent multiple triggers
+    ScrollTrigger.getAll().forEach((trigger) => {
+      if (
+        trigger.trigger &&
+        trigger.trigger.id === CONFIG.ELEMENTS.INTERACTIONS_WRAPPER
+      ) {
+        trigger.kill();
+      }
+    });
   }
 
   /**
@@ -483,8 +516,8 @@
         y: 0,
         ease: "power2.inOut",
         onComplete: () => {
-          // Start social media animations after results are shown
-          animateSocialInteractions();
+          // Set up ScrollTrigger for social media animations
+          setupSocialScrollTrigger();
         },
       });
     }
