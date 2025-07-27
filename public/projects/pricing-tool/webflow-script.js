@@ -29,12 +29,16 @@
       BUSINESS_NAME: "business-name", // ID of the business name input field
       SERVICES_INPUT: "services-input", // ID of the services input field
       SUBMIT_BTN: "chat-submit-button", // ID of the submit button
-      OUTPUT_WRAPPER: "output-wrapper", // ID of the output wrapper div (moved from chat-output)
+      OUTPUT_WRAPPER: "output-wrapper", // ID of the output wrapper div
       FORM_CARD: "form-card", // ID of the form container
       LOADING: "loading", // ID of the loading div
       LOADING_TEXT: "loading-text", // ID of the loading text element
       RESULTS: "results", // ID of the results div
       BUSINESS_NAME_CTA: "business-name-cta", // ID of the CTA business name text block
+      INTERACTIONS_WRAPPER: "interactions-wrapper", // ID of the interactions wrapper
+      INTERACTIONS_COUNT: "interactions-count", // ID of the interactions count
+      COMMENTS_COUNT: "comments-count", // ID of the comments count
+      REPOSTS_COUNT: "reposts-count", // ID of the reposts count
     },
     LOADING_TEXTS: [
       "Calculating pettiness...",
@@ -46,6 +50,15 @@
     ],
     ANIMATION_DURATION: 0.5, // Duration for main animations
     TEXT_ROTATION_DURATION: 2000, // Duration between text rotations (in ms)
+    SOCIAL_ANIMATION: {
+      DELAY: 1000, // 1 second delay before starting social animations
+      DURATION: 2000, // 2 seconds for the counting animation
+      RANGES: {
+        INTERACTIONS: { min: 25000, max: 99000 },
+        COMMENTS: { min: 1000, max: 9999 },
+        REPOSTS: { min: 500, max: 999 },
+      },
+    },
   };
 
   // Track if we're currently processing a request
@@ -178,6 +191,174 @@
   }
 
   /**
+   * Generates a random integer between min and max (inclusive)
+   */
+  function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  /**
+   * Formats numbers with commas for display
+   */
+  function formatNumber(num) {
+    return num.toLocaleString();
+  }
+
+  /**
+   * Animates a counter from 0 to target value with slot machine effect
+   */
+  function animateCounter(element, targetValue, duration = 2000) {
+    if (!element) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      const startValue = 0;
+      const increment = targetValue / (duration / 16); // ~60fps
+      let currentValue = startValue;
+
+      const counter = setInterval(() => {
+        currentValue += increment;
+
+        if (currentValue >= targetValue) {
+          currentValue = targetValue;
+          clearInterval(counter);
+          element.textContent = formatNumber(Math.floor(currentValue));
+          resolve();
+        } else {
+          // Add some randomness to make it look more like a slot machine
+          const displayValue = Math.floor(
+            currentValue + Math.random() * increment
+          );
+          element.textContent = formatNumber(displayValue);
+        }
+      }, 16); // ~60fps
+    });
+  }
+
+  /**
+   * Starts the social media interactions animation sequence
+   */
+  function animateSocialInteractions() {
+    return new Promise((resolve) => {
+      const interactionsWrapper = document.getElementById(
+        CONFIG.ELEMENTS.INTERACTIONS_WRAPPER
+      );
+      const interactionsCount = document.getElementById(
+        CONFIG.ELEMENTS.INTERACTIONS_COUNT
+      );
+      const commentsCount = document.getElementById(
+        CONFIG.ELEMENTS.COMMENTS_COUNT
+      );
+      const repostsCount = document.getElementById(
+        CONFIG.ELEMENTS.REPOSTS_COUNT
+      );
+
+      if (!interactionsWrapper) {
+        console.warn(
+          "Interactions wrapper not found, skipping social animations"
+        );
+        resolve();
+        return;
+      }
+
+      // Set initial state - hidden
+      gsap.set(interactionsWrapper, { opacity: 0 });
+
+      // Generate random target values
+      const targets = {
+        interactions: getRandomInt(
+          CONFIG.SOCIAL_ANIMATION.RANGES.INTERACTIONS.min,
+          CONFIG.SOCIAL_ANIMATION.RANGES.INTERACTIONS.max
+        ),
+        comments: getRandomInt(
+          CONFIG.SOCIAL_ANIMATION.RANGES.COMMENTS.min,
+          CONFIG.SOCIAL_ANIMATION.RANGES.COMMENTS.max
+        ),
+        reposts: getRandomInt(
+          CONFIG.SOCIAL_ANIMATION.RANGES.REPOSTS.min,
+          CONFIG.SOCIAL_ANIMATION.RANGES.REPOSTS.max
+        ),
+      };
+
+      console.log("Starting social animations with targets:", targets);
+
+      // After delay, fade in the wrapper and start counting animations
+      setTimeout(() => {
+        // Fade in the wrapper
+        gsap.to(interactionsWrapper, {
+          duration: 0.5,
+          opacity: 1,
+          ease: "power2.inOut",
+          onComplete: () => {
+            // Start all counter animations simultaneously
+            const animations = [];
+
+            if (interactionsCount) {
+              animations.push(
+                animateCounter(
+                  interactionsCount,
+                  targets.interactions,
+                  CONFIG.SOCIAL_ANIMATION.DURATION
+                )
+              );
+            }
+
+            if (commentsCount) {
+              animations.push(
+                animateCounter(
+                  commentsCount,
+                  targets.comments,
+                  CONFIG.SOCIAL_ANIMATION.DURATION
+                )
+              );
+            }
+
+            if (repostsCount) {
+              animations.push(
+                animateCounter(
+                  repostsCount,
+                  targets.reposts,
+                  CONFIG.SOCIAL_ANIMATION.DURATION
+                )
+              );
+            }
+
+            // Wait for all animations to complete
+            Promise.all(animations).then(() => {
+              console.log("All social animations completed");
+              resolve();
+            });
+          },
+        });
+      }, CONFIG.SOCIAL_ANIMATION.DELAY);
+    });
+  }
+
+  /**
+   * Resets social media counters to initial state
+   */
+  function resetSocialInteractions() {
+    const interactionsWrapper = document.getElementById(
+      CONFIG.ELEMENTS.INTERACTIONS_WRAPPER
+    );
+    const interactionsCount = document.getElementById(
+      CONFIG.ELEMENTS.INTERACTIONS_COUNT
+    );
+    const commentsCount = document.getElementById(
+      CONFIG.ELEMENTS.COMMENTS_COUNT
+    );
+    const repostsCount = document.getElementById(CONFIG.ELEMENTS.REPOSTS_COUNT);
+
+    if (interactionsWrapper) {
+      gsap.set(interactionsWrapper, { opacity: 0 });
+    }
+
+    // Reset all counters to 0
+    if (interactionsCount) interactionsCount.textContent = "0";
+    if (commentsCount) commentsCount.textContent = "0";
+    if (repostsCount) repostsCount.textContent = "0";
+  }
+
+  /**
    * Splits API response into paragraphs and creates DOM elements
    * @param {string} content - The API response content
    * @returns {Array} - Array of paragraph elements
@@ -301,6 +482,10 @@
         opacity: 1,
         y: 0,
         ease: "power2.inOut",
+        onComplete: () => {
+          // Start social media animations after results are shown
+          animateSocialInteractions();
+        },
       });
     }
   }
@@ -512,6 +697,9 @@ Output only the complete announcement - no analysis or explanation.`;
     if (outputWrapper) {
       outputWrapper.innerHTML = "";
     }
+
+    // Reset social interactions
+    resetSocialInteractions();
 
     // Reset CTA text to default
     if (businessNameCTA) {
