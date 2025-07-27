@@ -51,7 +51,7 @@
     ANIMATION_DURATION: 0.5, // Duration for main animations
     TEXT_ROTATION_DURATION: 2000, // Duration between text rotations (in ms)
     SOCIAL_ANIMATION: {
-      DURATION: 1500, // 1.5 seconds for the counting animation
+      DURATION: 2000,
       RANGES: {
         INTERACTIONS: { min: 25000, max: 99000 },
         COMMENTS: { min: 1000, max: 9999 },
@@ -204,9 +204,13 @@
   }
 
   /**
-   * Animates a counter from 0 to target value with GSAP and easing
+   * Animates a counter from 0 to target value with GSAP and power4.out easing
    */
-  function animateCounter(element, targetValue, duration = 1500) {
+  function animateCounter(
+    element,
+    targetValue,
+    duration = CONFIG.SOCIAL_ANIMATION.DURATION
+  ) {
     if (!element) return Promise.resolve();
 
     return new Promise((resolve) => {
@@ -217,7 +221,7 @@
       gsap.to(counterObj, {
         value: targetValue,
         duration: duration / 1000, // Convert to seconds for GSAP
-        ease: "expo.out",
+        ease: "power4.out",
         onUpdate: () => {
           // Add some randomness for slot machine effect, but less as we get closer to target
           const progress = counterObj.value / targetValue;
@@ -260,7 +264,7 @@
     // Create ScrollTrigger
     ScrollTrigger.create({
       trigger: interactionsWrapper,
-      start: "top 80%", // When top of element hits 80% of viewport
+      start: "top 90%", // When top of element hits 80% of viewport
       once: true, // Only trigger once
       onEnter: () => {
         console.log("ScrollTrigger fired - starting social animations");
