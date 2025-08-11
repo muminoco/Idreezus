@@ -3,7 +3,7 @@ let isInitialized = false;
 
 // Centralized attribute configuration
 const ATTR = {
-  button: "data-copy-button", // preferred trigger (must be "true")
+  button: "data-copy-button", // preferred trigger (should be "true")
   tooltip: "data-copy-tooltip", // optional tooltip
   buttonText: "data-copy-button-text", // optional child for text swap
   originalText: "data-original-text", // stores original text
