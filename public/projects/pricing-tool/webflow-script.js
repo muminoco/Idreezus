@@ -51,6 +51,7 @@
     ANIMATION_DURATION: 0.5, // Duration for main animations
     TEXT_ROTATION_DURATION: 2000, // Duration between text rotations (in ms)
     MINIMUM_LOADING_DURATION: 5500, // Minimum loading time in milliseconds
+
     SOCIAL_ANIMATION: {
       DURATION: 2000,
       RANGES: {

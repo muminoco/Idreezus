@@ -57,18 +57,20 @@ export function initCopyButtons() {
 function handleCopy(element) {
   let textToCopy;
 
-  if (element.hasAttribute("data-copy-page")) {
-    // Copy current page URL
-    textToCopy = window.location.href;
-  } else {
-    // Look for child element with data-copy-link
-    const linkElement = element.querySelector("[data-copy-link]");
-    if (linkElement && linkElement.href) {
-      textToCopy = linkElement.href;
-    } else {
-      console.warn("No link available to copy for element:", element);
+  // New behavior: copy explicit custom content from the element
+  if (element.getAttribute("data-copy-custom") === "true") {
+    const customContent = element.getAttribute("data-copy-custom-content");
+    if (!customContent) {
+      console.warn(
+        "No custom content found to copy for element (missing data-copy-custom-content):",
+        element
+      );
       return;
     }
+    textToCopy = customContent;
+  } else {
+    console.warn("No copy configuration found for element:", element);
+    return;
   }
 
   // Copy to clipboard
